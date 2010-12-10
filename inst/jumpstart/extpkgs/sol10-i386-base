@@ -1,0 +1,69 @@
+# The following are the basic packages that get installed on 
+# every solaris machine we build.  These are here to
+# make our lives easier, so we have a standard toolset to
+# work from.  These packages need to live in
+# /inst/data/extpkgs/SunOS-5.10-i386 in order to be successfully
+# installed.
+
+libgcc-3.4.6-owc1-sol10-i386
+
+tar-1.19-owc1-sol10-i386
+
+gawk-3.1.6-owc1-sol10-i386
+
+nrpe2-2.5.1-owc13-sol10-i386
+
+openssl-0.9.8g-owc1-sol10-i386
+
+openldap-client-2.2.27-owc1-sol10-i386
+
+diffutils-2.8.1-owc1-sol10-i386
+
+lsof-4.78-owc1-sol10-i386
+
+ncurses-5.6-owc2-sol10-i386
+
+screen-4.0.2-owc1-sol10-i386
+
+rcs-5.7-owc1-sol10-i386
+
+sudo-1.6.9p14-owc1-sol10-i386
+
+top-3.7-owc1-sol10-i386
+
+vim-7.1-owc1-sol10-i386
+
+wget-1.11-owc1-sol10-i386
+
+expat-2.0.1-owc1-sol10-i386
+
+libiconv-1.9.1-owc1-sol10-i386
+
+gettext-0.17-owc1-sol10-i386
+
+coreutils-6.9-owc1-sol10-i386
+
+perl-5.8.8-owc1-sol10-i386
+
+PERLnetnetmask588-1.9012-owc1-sol10-i386
+
+rsync-3.0.0-owc1-sol10-i386
+
+db4-4.6.21-owc1-sol10-i386
+
+nagiosplg-1.4.11-owc45-sol10-i386
+
+cfengine-2.1.20-owc2-sol10-i386 
+
+orcallator-r535-owc1-sol10-i386
+
+neon-0.25.5-owc1-sol10-i386
+
+subversion-client-1.4.6-owc3-sol10-i386
+
+StorMan-6.10.0-17551-sol10-i386
+
+nrpe-2.12-owc4-sol10-i386
+
+nagios-plugins-1.4.14-owc4-sol10-i386
+

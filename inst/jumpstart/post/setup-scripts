@@ -1,0 +1,134 @@
+#!/bin/sh
+
+umask 022
+
+osrev=`echo ${ver} |awk -F'.' '{print $2}'`
+
+# tasks done for all OS versions and all hardware revisions
+
+echo "removing telnet banner"
+echo 'BANNER=""' > ${B}/etc/default/telnetd
+
+crondir="${B}/var/spool/cron/crontabs"
+
+echo "removing extra cron entries"
+for USER in lp adm sys ; do
+  if [ -f "${crondir}/${USER}" ]; then
+    echo "Removing ${USER} crontab"
+    rm -f "${crondir}/${USER}"
+  fi
+done
+
+echo "Adding to default paths"
+sed 's]^#PATH=.*$]PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/ucb:/usr/ccs/bin:/usr/proc/bin:/usr/openwin/bin]; s]^#SUPATH=.*$]SUPATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/ucb:/usr/local/sbin:/usr/ccs/bin:/usr/proc/bin:/usr/openwin/bin]' < ${B}/etc/default/login > ${B}/etc/default/login.$$
+
+mv ${B}/etc/default/login.$$ ${B}/etc/default/login
+
+echo "this isnt a router"
+touch ${B}/etc/notrouter
+
+echo "make sure the box never powers down with power management"
+touch ${B}/noautoshutdown
+
+echo "making /etc/.sysIDtool.state not world writable"
+chmod 0600 ${B}/etc/.sysIDtool.state
+
+echo "Improving TCP sequence number generation"
+cp ${B}/etc/default/inetinit ${B}/etc/default/inetinit.$$
+sed 's/TCP_STRONG_ISS=1/TCP_STRONG_ISS=2/' \
+     < ${B}/etc/default/inetinit.$$ > ${B}/etc/default/inetinit
+rm -f ${B}/etc/default/inetinit.$$
+
+echo "changing system to use non-BREAK abort sequence"
+cp ${B}/etc/default/kbd ${B}/etc/default/kbd.$$
+sed 's/^#\(KEYBOARD_ABORT=alternate\)/\1/' \
+     < ${B}/etc/default/kbd.$$ > ${B}/etc/default/kbd
+rm -f ${B}/etc/default/kbd.$$
+
+##############################################################################
+# OS specific configuration
+##############################################################################
+
+# solaris 8
+
+if [ ${osrev} -eq 8 ]; then
+  echo "removing packages that you have to install"
+
+  for PACKAGE in SUNWftpr SUNWftpu SUNWsndmr SUNWsndmu SUNWpcmci SUNWpcelx SUNWpcmcu SUNWpcmem SUNWpcser ; do
+    pkgrm -R${B} -M -n -a ${SI_CONFIG_DIR}/files/noask_pkgadd ${PACKAGE} \
+      2>&1 | sed '/^$/d'
+  done
+fi
+
+# solaris 8 and 9
+
+if [ ${osrev} -lt 10 ] ; then
+  # add all S files in /etc/rc2.d or rc3.d that you don't want started in
+  # the followling list before S72autoinstall
+
+  echo "removing services in /etc/rc[23].d"
+  for ser in S72autoinstall S73cachefs.daemon S93cacheos.finish ; do
+    if [ -f ${B}/etc/rc2.d/${ser} ]; then
+      echo "disabling rc2.d/${ser}"
+      mv -f ${B}/etc/rc2.d/${ser} ${B}/etc/rc2.d/no.${ser}
+    elif [ -f ${B}/etc/rc3.d/${ser} ]; then
+      echo "disabling rc3.d/${ser}"
+      mv -f ${B}/etc/rc3.d/${ser} ${B}/etc/rc3.d/no.${ser}
+    fi
+  done
+
+  echo "commenting out everything in inetd.conf"
+
+  cp ${B}/etc/inet/inetd.conf ${B}/etc/inet/inetd.conf.$$
+  sed -e 's/^\([^#]\)/#\1/' \
+    < ${B}/etc/inet/inetd.conf.$$ > ${B}/etc/inet/inetd.conf
+  rm -f ${B}/etc/inet/inetd.conf.$$
+  chmod a+r ${B}/etc/inet/inetd.conf
+
+  # disable multicast
+  sysetup="${B}/etc/init.d/inetsvc"
+  if [ -f "${sysetup}" ]; then
+    echo "disabling multicast"
+  
+    sed -e '/^echo "Setting default/,/^\/usr\/sbin\/route/ s/^/#/' \
+      < ${sysetup} > ${sysetup}.$$
+
+    if [ "X${clusterid}" = 'X' ]; then
+      echo "disabling inetd"
+      sed -e '/^\/usr\/sbin\/inetd/ s/^/#/' < ${sysetup}.$$ > ${sysetup}2.$$
+
+      cp ${sysetup}2.$$ ${sysetup}
+    else
+      echo "Not disabling inetd, because the cluster needs it."
+      cp ${sysetup}.$$ ${sysetup}
+    fi
+
+    rm -f ${sysetup}.$$ ${sysetup}2.$$
+    chmod a+r ${sysetup}
+  fi
+fi
+
+# make sure that the pfil config file has something in it
+# for solaris 9, this should be added by the pfil package
+# for solaris 10, added it here so that we can enable ipfilter below
+
+if [ ${osrev} -lt 10 ] ; then
+    CONFFILE="${B}/etc/opt/pfil/iu.ap"
+    EXPR='	'
+else
+    CONFFILE="${B}/etc/ipf/pfil.ap"
+    EXPR=''
+fi
+
+mkdir -p `dirname ${CONFFILE}`
+touch ${CONFFILE}
+
+IFACES=`ifconfig -a|sed -ne 's/\([a-z0-9]*\)[0-9]\{1,\}[:0-9]*: .*/\1/p'|grep -v lo|sort -u`
+for IF in ${IFACES}; do
+  /usr/xpg4/bin/grep -q "^${EXPR}${IF}" ${CONFFILE}
+  if [ $? -ne 0 ] ; then
+    echo "${EXPR}${IF}    -1      0       pfil" >> ${CONFFILE}
+  fi
+done
+
+

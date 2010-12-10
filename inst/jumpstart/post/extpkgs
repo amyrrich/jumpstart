@@ -1,0 +1,65 @@
+##
+#
+
+# This is for use in postereboot.
+
+. $utildir/douname
+. $utildir/patchinstall
+. $utildir/pkginstall
+
+echo "installing extpkgs"
+
+if [ -z "$extpkglist" ]; then
+  echo "No extpkgs to install."
+else
+
+  # If we have a default zone, boot it
+  if [ -f /usr/sbin/zoneadm ]; then
+    zoneadm list -cv
+    DEF=`/usr/sbin/zoneadm -z default list -v | awk '/default/ {print $3}'`
+    if [ "X${DEF}" != 'Xrunning' ]; then
+      zoneadm -z default boot
+      sleep 120
+      zoneadm list -cv
+    fi
+  fi
+
+  pkgloc="/mnt/data/extpkgs/${os}-${ver}-${proc}"
+  adminfile="/mnt/jumpstart/files/noask_pkgadd"
+
+  echo "extpkglist=\"$extpkglist\""
+  echo "pkgloc=\"$pkgloc\""
+  echo "adminfile=\"$adminfile\""
+
+  # Testing information
+  echo "Testing for /tmp availability"
+  touch /tmp/temp-available
+
+  EXTPKGS_OS_VERSION=`uname -r | sed 's/5\.//'`
+  if [ $EXTPKGS_OS_VERSION -ge 9 ]; then
+      echo No fastfs calls for Solaris $EXTPKGS_OS_VERSION
+  else
+    # Turn fastfs on for all partitions bar /var, since this might be causing
+    # problems in the installation process.
+    /mnt/jumpstart/files/fastfs -a fast
+    /mnt/jumpstart/files/fastfs /var slow
+  fi
+
+  touch /var/sadm/install_data/extpkg.log
+
+  for pkgprofile in $extpkglist; do
+###    pkginstall "$pkgloc" "/mnt/jumpstart/profiles/extpkgs/$pkgprofile" \
+    pkginstall "$pkgloc" "/mnt/jumpstart/extpkgs/$pkgprofile" \
+             "$adminfile" 2>&1  | \
+           tee -a /var/sadm/install_data/extpkg-install.log | \
+           egrep -v -f /mnt/jumpstart/files/extpkg.grepout.txt
+  done
+
+
+  if [ `uname -r` = '5.9' ] ; then
+    sync; sync; reboot
+  else
+    sync; sync; reboot -- -m verbose
+  fi
+fi
+

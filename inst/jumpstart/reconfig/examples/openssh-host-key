@@ -1,0 +1,63 @@
+##
+#
+# Regenerate the ssh-host key.
+ 
+PATH=/usr/local/bin:/usr/bin:$PATH
+ 
+if [ -f /usr/local/bin/ssh-keygen ]; then
+ 
+  # make sure it's got the right umask
+  umask 022
+
+  # Work out where the frog ssh-host key should be ...
+  for sshdfile in \
+		  /etc/sshd_config \
+                  /usr/local/etc/sshd_config \
+		  /usr/local/etc/openssh/sshd_config \
+                  ; do
+    if [ -f $sshdfile ]; then
+      result=`awk '/^ *(HostKey|HostRSAKey) / { print $2; exit }' $sshdfile`
+      dsaresult=`awk '/^ *HostDSAKey / { print $2; exit }' $sshdfile`
+      if [ -n "$result" ]; then
+        hostkey="$result" 
+      fi
+      if [ -n "$dsaresult" ]; then
+        dsahostkey="$dsaresult" 
+      fi
+    fi  
+  done  
+  
+  if [ -z "$hostkey" ]; then
+    echo "no path for hostkey - not creating key." 2>&1
+  else
+  
+    if [ -f "$hostkey" ]; then
+      echo "Host name file exists, not recreating host key." 2>&1
+    else
+      echo "Generating ssh host key"
+
+      if [ ! -r "$entropy" ]; then
+        /etc/init.d/prngd start
+      fi
+      ssh-keygen -b 1024 -f $hostkey -N ''
+    fi
+      
+  fi  
+  if [ -z "$dsahostkey" ]; then
+    echo "no path for dsahostkey - not creating key." 2>&1
+  else
+  
+    if [ -f "$dsahostkey" ]; then
+      echo "DSA host name file exists, not recreating dsahost key." 2>&1
+    else
+      echo "Generating ssh dsahost key"
+      if [ ! -r "$entropy" ]; then
+        /etc/init.d/prngd start
+      fi
+      ssh-keygen -d -f $dsahostkey -N ''
+    fi
+      
+  fi  
+else  
+  echo "/usr/local/bin/ssh-keygen not found - not creating key." 2>&1
+fi

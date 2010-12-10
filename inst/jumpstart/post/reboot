@@ -1,0 +1,7 @@
+# let's reboot the machine now instead of specifically after patching
+
+if [ `uname -r` = '5.9' ] ; then
+  sync; sync; reboot
+else 
+  sync; sync; reboot -- -m verbose
+fi

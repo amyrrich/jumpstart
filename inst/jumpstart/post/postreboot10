@@ -1,0 +1,75 @@
+##
+#
+
+# leave script in place to run another set of scripts, post-reboot.
+
+if [ -z "$postreboot" ]; then
+  echo "No postreboot scripts to install."
+else
+
+  echo "Leaving installs to after reboot: $postreboot"
+  # write out the wrapper scipt
+  prerunfile="$B/etc/rc2.d/S99a.postreboot"
+  touch $prerunfile
+  echo  '#!/sbin/sh' > $prerunfile
+  chmod 755 $prerunfile
+
+  # and start the real script so we know where it is
+  runfile="/etc/init.d/postreboot.run"
+  touch $B/$runfile
+  echo  '#!/sbin/sh' > $B$runfile
+  chmod 755 $B$runfile
+
+  # where is the log file ?
+  logfile="/var/sadm/postreboot.log"
+
+  # finish the wrapper
+  echo "case \"\$1\" in"                      >> $prerunfile
+  echo "   'start')"                          >> $prerunfile
+  echo "     echo \"## Running postreboot wrapper.\"" >> $prerunfile
+  echo "     /sbin/sh -xv \"$runfile\""       >> $prerunfile
+  echo '     rm -f $0'                        >> $prerunfile
+  echo "   ;;"                                >> $prerunfile
+  echo "   'stop')"                           >> $prerunfile
+  echo "   ;;"                                >> $prerunfile
+  echo "   *)"                                >> $prerunfile
+  echo "   ;;"                                >> $prerunfile
+  echo "esac"                                 >> $prerunfile
+
+  ## For debug purposes
+##  echo "---"
+##  cat $prerunfile
+##  echo "---"
+
+  # Make sure the log file is there when we want it
+  touch $B$logfile
+
+  # deal with the shell being wrong because of the script jiggery pokery
+  echo "SHELL=/sbin/sh" >> $B$runfile
+  echo "export SHELL"   >> $B$runfile
+
+  # Add the press return to continue util.
+  cat < $utildir/pressret   >> $B$runfile
+  # Add the pkginstall function
+  cat < $utildir/pkginstall >> $B$runfile
+
+  # Where to get utilities from.
+  echo                                   >> $B$runfile
+###  echo "utildir=\"/mnt/jumpstart/scripts/util\"" >> $B$runfile
+  echo "utildir=\"/mnt/jumpstart/util\"" >> $B$runfile
+  echo "jumpstartip=\"$jumpstartip\""    >> $B$runfile
+
+  # Copy the remainder of the file from an existing file.
+  # Can't be in this script since $ needs to not be interpreted.
+  cat ${SI_CONFIG_DIR}/files/postreboot.copy >> $B$runfile
+###  cat ${SI_CONFIG_DIR}/files/postreboot >> $B$runfile
+
+  # Need the list of things somewhere I can get at and change easily as
+  # I run scripts.
+  echo "$postreboot" > $B/etc/.postreboot
+
+  # Debugging use.
+##  echo ----
+##  cat $B$runfile
+##  echo ----
+fi

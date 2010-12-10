@@ -1,0 +1,43 @@
+#!/bin/sh
+# This script is under cfengine control.  Please change it at
+# cfd:/local/cfengine/servers/jumpstart/all/inst/script
+
+PATH=/usr/xpg4/bin:/usr/local/bin:/usr/bin:$PATH
+export PATH
+
+scriptdir=`dirname $0`
+
+# make sure we have at least one argument (hostname)
+
+if [ "$1" = "" ]; then
+  PrintError "Usage: $0"' <fqdn> [<fqdn> ...]' 1>&2
+  exit 1
+fi
+
+restart=0
+
+# the list of machines is on the command line
+machines="$*"
+
+# include the functions file
+. ${scriptdir}/je-funcs.sh
+
+for client in $machines ; do
+
+  # Frist, determine the jumpnet hostname of the client
+  OIFS="${IFS}"
+  IFS='.'
+  set -- ${client}
+  IFS="${OIFS}"
+
+  # save the bare hostname of the client for later reference
+  barejsclient=${1}
+
+  delete_dhcp_host
+
+done
+
+
+if [ ${restart} -eq 1 ];  then
+  restart_dhcpd
+fi

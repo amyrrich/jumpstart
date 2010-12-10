@@ -1,0 +1,58 @@
+
+if [ "$?" != "0" ]; then
+  pressret "extpkg install MOUNT FAILED." \
+           "Press return to continue or restart:\c"
+fi
+
+# Do we have a pkg directory ?
+if [ -d /mnt/$pkgloc ]; then
+
+  echo "installing packages"
+
+  # Turn fastfs on for all partitions bar /var, since this might be causing
+  # problems in the installation process.
+  /mnt/jumpstart/files/fastfs -a fast
+  /mnt/jumpstart/files/fastfs /var slow
+
+  touch /var/sadm/install_data/extpkg.log
+
+  pkginstall "/mnt/$pkgloc" "/mnt/jumpstart/profiles/$extpkglist" \
+             "/mnt/jumpstart/$adminfile"
+
+  cd /
+
+  # do some general post pkg install config
+  if [ -f /etc/ssh_host_key ]; then
+    rm -f /etc/ssh_host_key /etc/ssh_host_key.pub
+  fi
+
+  if [ -f /etc/sshd/host_key_root ]; then
+    rm -f /etc/sshd/host_key_root /etc/sshd/host_key_root.pub
+  fi
+  if [ -f /usr/local/bin/tcsh ]; then
+    /usr/bin/cp /usr/local/bin/tcsh /usr/bin
+    echo "Copying /usr/local/bin/tcsh to /usr/bin"
+  fi
+  if [ -f /usr/local/bin/zsh ]; then
+    /usr/bin/cp /usr/local/bin/zsh /usr/bin
+    echo "Copying /usr/local/bin/zsh to /usr/bin"
+  fi
+
+
+#  /mnt/jumpstart/files/fastfs -a slow
+
+else
+
+  pressret "extpkgs install MOUNT FAILED, or package directory not found" \
+           "Press return to continue or restart:\c"
+
+fi
+
+echo "unmounting"
+fuser -k -c /mnt > /dev/null
+umount /mnt
+
+rm $0
+if [ "$doreboot" = "yes" ]; then
+  reboot
+fi

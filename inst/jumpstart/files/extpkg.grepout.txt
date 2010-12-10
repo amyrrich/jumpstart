@@ -1,0 +1,26 @@
+^ *$
+^   [a-zA-Z0-9(]
+^    [a-zA-Z0-9(]
+^        [a-zA-Z0-9(]
+^YOU MUST
+^INDIVIDUAL
+^FOR THE TECHNOLOGIES
+^BY SUN MICROSYSTEMS
+^THE TECHNOLOGIES
+WARRANTY
+FITNESS
+LIMITED TO
+PARTICULAR PURPOSE
+MERCHANTABILITY
+GNU
+^Copyright
+^This file
+^AWK
+^GAWK
+^the Free Software
+This program is distributed
+^\(at your option
+^but WITHOUT
+[fF]ree [sS]oftware
+Foundation
+any later version.

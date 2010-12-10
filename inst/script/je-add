@@ -1,0 +1,148 @@
+#!/bin/sh
+# This script is under cfengine control.  Please change it at
+# cfd:/local/cfengine/servers/jumpstart/all/inst/script
+
+PATH=/usr/xpg4/bin:/usr/local/bin:/usr/bin:$PATH
+export PATH
+
+scriptdir=`dirname $0`
+
+# make sure we have at least three arguments
+
+if [ "${3}" = "" ]; then
+  echo "Usage: `basename ${0}`"' <ethernet addr> <fqdn> <arch> [<os-ver>-[<HWrelease>]]' 1>&2
+  echo "Usage:   "' <os-ver> defaults to 5.9' 1>&2
+  echo "Usage:   "' <arch> must be one of sun4u, sun4v, or i86pc' 1>&2
+  exit 1
+fi
+
+
+
+# Read in the user input
+
+# The ethernet address
+ether="${1}"
+# The client.
+client="${2}"
+# The arch
+arch="${3}"
+# The os version (optional)
+if [ -n "${4}" ]; then
+  ver="${4}"
+else
+  ver='5.9'
+fi
+# strip off the leading 5. for the osrev
+osrev=`echo ${ver} |sed -e 's/^5\.//'`
+
+# include the functions file
+. ${scriptdir}/je-funcs.sh
+
+
+# The location of the dhcpd config file for this arch and osrev
+dhcpdfile="${dhcpddir}/sol${osrev}-${arch}-dhcpd.conf"
+
+if [ ! -w ${dhcpdfile} ]; then
+  echo "Error opening ${dhcpdfile}.  Aborting!"
+  exit 1
+fi
+
+# Frist, determine the jumpnet hostname of the client
+OIFS="${IFS}"
+IFS='.'
+set -- ${client}
+IFS="${OIFS}"
+
+# save the bare hostname of the client for later reference
+barejsclient=${1}
+
+# Generate the jumpnet name of the host
+if [ "X${2}" = "Xmy" ]; then
+  subdomain=''
+  jsclient="${barejsclient}.${jsdomain}"
+else
+  subdomain="${2}"
+  jsclient="${barejsclient}.${2}.${jsdomain}"
+fi
+
+# see if the client already exists in a dhcpd config file
+
+indhcpdfile=`grep -l "option host-name \"${barejsclient}" ${dhcpddir}/*-dhcpd.conf`
+
+if [ "$?" -eq 0 ]; then
+  # we've found an entry, so let's delete it
+  set -- ${indhcpdfile}
+  for dhcpdconf in $@; do
+    echo "Deleting previous entry for ${client} in ${dhcpdconf}."
+    rm -f ${dhcpdconf}.$$ && \
+      /usr/bin/sed -e '/^[ 	]*$/d' -e "/^ *host ${barejsclient} .*/,/\}/d" \
+      < ${dhcpdconf} > ${dhcpdconf}.$$
+
+    check_diff_lines ${dhcpdconf} 7
+    mv -f ${dhcpdconf}.$$ ${dhcpdconf}
+  done
+fi
+
+# Determine the jumpnet client IP by looking up the jumpnet hostname
+if dnsentry=`getent hosts ${jsclient}`; then
+  # Even if the result is multiline, we always use the
+  # IP address on the first line, just like before.   
+  set -- ${dnsentry}
+  ipaddr=${1}
+else
+  echo "${0}: can not find IP adress for client ${jsclient}" 1>&2
+  exit 2
+fi
+
+
+# Parse the client jumpnet IP address to determine the jumpstart server IP
+OIFS="${IFS}"
+IFS='.'
+set -- ${ipaddr}
+IFS="${OIFS}"
+
+case "${1}.${2}.${3}" in
+  192.168.0|192.168.1)
+    jsserver='192.168.1.252'
+  ;;
+  192.168.6)
+    jsserver='192.168.6.1'
+  ;;
+  192.168.8)
+    jsserver='192.168.8.1'
+  ;;
+  *)
+    echo "No jumpnet server exists for ${1}.${2}.${3}."
+    exit 1
+  ;;
+esac
+
+# make sure the ethernet address has no leading 0s 'cause this breaks rplboot
+ether=`echo "$ether" | sed 's/0\([0-9a-fA-F]\)/\1/g'`
+
+
+echo "Adding ${client} to ${dhcpdfile}"
+
+# Finally, put it all together and write out an entry for the host in the
+# dhcpd.conf file
+
+# Trim the closing brace and all of the whitespace from the file
+sed -e '/^[ 	]*$/d' ${dhcpdfile} | sed -e '$d' > ${dhcpdfile}.$$
+
+cat <<EOF >> ${dhcpdfile}.$$
+  host ${barejsclient} {
+    hardware ethernet ${ether};
+    fixed-address ${ipaddr};
+    option host-name "${client}";
+  }
+}
+EOF
+
+check_diff_lines ${dhcpdfile} 7
+mv -f ${dhcpdfile}.$$ ${dhcpdfile}
+
+if [ -x /etc/init.d/iscdhcpd ];  then
+  /etc/init.d/iscdhcpd stop && sleep 3 && /etc/init.d/iscdhcpd start
+else
+  echo "Could not execute /etc/init.d/iscdhcpd: $!"
+fi

@@ -1,0 +1,14 @@
+##
+#
+
+addpostreboot() {
+  # Add something back into the postreboot list.
+  # Used by post/packages if one of the package scripts wants to reboot.
+
+  ## do we actually need this to be defined ? I might be able to inherit it
+  postlistfile="/etc/.postreboot"
+
+  postreboot="$* `cat $postlistfile`"
+  echo $postreboot > $postlistfile
+
+}

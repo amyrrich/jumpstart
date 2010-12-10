@@ -1,0 +1,10 @@
+##
+#
+
+## Build windex databases
+##
+echo building windex dbs
+for d in $B/usr/man $B/usr/local/man $B/usr/openwin/man ; do
+  $B/usr/bin/catman -M $d -w
+done
+

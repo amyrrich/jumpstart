@@ -1,0 +1,15 @@
+install_type    initial_install
+# create an initial pool with swap and dump sized to be 4G.  Any two avilable
+# disks may be used.
+pool rpool auto 4g 4g mirror any any
+# create the initial boot environment with /var as a separate zfs dataset
+bootenv installbe bename s10-RC dataset /var
+# create other zfs datasets (not supported yet)
+# bootenv installbe bename s10u6_initial dataset /var/log
+# bootenv installbe bename s10u6_initial dataset /var/adm
+# bootenv installbe bename s10u6_initial dataset /var/spool
+# bootenv installbe bename s10u6_initial dataset /var/tmp
+# bootenv installbe bename s10u6_initial dataset /local
+# bootenv installbe bename s10u6_initial dataset /usr/local
+# bootenv installbe bename s10u6_initial dataset /home
+# bootenv installbe bename s10u6_initial dataset /zones

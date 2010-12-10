@@ -1,0 +1,72 @@
+#!/bin/sh
+# begin script - run on the client before the installation begins.
+# this begin script creates the profile from information and pointers
+# to files in ${SI_CONFIG_DIR}}/hostconf/`uname -n`
+#
+# when the profile section os an = then theprofile is taken from
+# ${SI_PROFILE}
+#
+# ${SI_CONFIG_DIR} is the jumpstart directory.
+
+# where are the utilities ?
+# this is also in the post install script
+utildir="${SI_CONFIG_DIR}/util"
+
+# grab the press return function
+. $utildir/pressret
+
+# set the uname variables - $os $ver $arch and $proc
+# requires the pressret function
+. $utildir/douname
+
+echo
+echo "#####################################################################"
+echo "Pre install (begin) script"
+echo "#####################################################################"
+echo
+
+# find and source the hostconfig file.
+# this gets the variables from the host config file and gives warning
+# messages if there are problems or it can't find it.
+# requires the pressret function
+. $utildir/gethostconf
+
+# check we have some ospkgs
+if [ -z "$ospkglist" ]; then
+  pressret "" "No ospkgs file." "Add something to \$ospkglist and restart."
+fi
+
+# check we have a profile
+if [ -z "$profile" ]; then
+  pressret "" "No profile." "Add something to \$profile and restart."
+fi
+
+# Now we've done some very basic verification, put together a profile.
+echo 'Writing profile out to ${SI_PROFILE}'
+
+# Make sure we have something to add to.
+touch  ${SI_PROFILE}
+
+for file in $profile ; do
+  if [ -r ${SI_CONFIG_DIR}/prof/$file ]; then
+    echo "  adding \"prof/$file\" to profile"
+    echo                                >> ${SI_PROFILE}
+    cat ${SI_CONFIG_DIR}/prof/$file     >> ${SI_PROFILE}
+  else
+    pressret "" "profile prof/$file not found" \
+             "press return to ignore or fix and restart"
+  fi
+done
+
+for file in $ospkglist ; do
+  if [ -r ${SI_CONFIG_DIR}/ospkg/$file ]; then
+    echo "  adding \"ospkg/$file\" to profile"
+    echo                                >> ${SI_PROFILE}
+    cat ${SI_CONFIG_DIR}/ospkg/$file    >> ${SI_PROFILE}
+  else
+    pressret "" "ospkg file ospkg/$file not found" \
+             "press return to ignore or fix and restart"
+  fi
+done
+
+echo

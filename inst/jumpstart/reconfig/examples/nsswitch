@@ -1,0 +1,9 @@
+##
+#
+
+echo "putting DNS back into a standard nsswitch.conf"
+sed 's/^\(hosts:[ ]*files\)$/\1 dns/' \
+                    < /etc/nsswitch.files > /etc/nsswitch.conf.dns
+cp -f /etc/nsswitch.conf.dns /etc/nsswitch.conf
+chmod 644 /etc/nsswitch.conf /etc/nsswitch.conf.dns
+

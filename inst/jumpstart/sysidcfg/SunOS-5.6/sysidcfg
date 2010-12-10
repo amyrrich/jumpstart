@@ -1,0 +1,6 @@
+system_locale="en_US"
+install_locale="en_US"
+timeserver="localhost"
+name_service=NONE {}
+terminal=vt100
+timezone="US/Eastern"

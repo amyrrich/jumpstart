@@ -1,0 +1,31 @@
+# partitioning based on 36gb disk.
+install_type    initial_install
+isa_bits	64
+system_type     standalone
+partitioning    explicit
+
+# swap listed first on s0 to get arond cylinder 0 issue
+filesys         c0t0d0s0 8192 swap
+filesys         c0t2d0s0 8192 /spare/swap
+
+# the base filesystem and its mirror
+filesys 	c0t0d0s1 4096 / logging
+filesys         c0t2d0s1 4096 /spare/root
+
+filesys 	c0t0d0s3 4096 /var logging
+filesys         c0t2d0s3 4096 /spare/var
+
+# Alternate / and /var filesystems for liveupgrade and their mirrors
+filesys		c0t0d0s5 4096 /lu/root
+filesys         c0t2d0s5 4096 /spare/lu/root
+
+filesys		c0t0d0s6 4096 /lu/var
+filesys         c0t2d0s6 4096 /spare/lu/var
+
+# metadb partitions
+filesys		c0t0d0s7 30 /spare/md1
+filesys		c0t2d0s7 30 /spare/md2
+
+# the rest of the space in /local
+filesys		c0t0d0s4 free /local logging
+filesys		c0t2d0s4 free /spare/local

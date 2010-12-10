@@ -1,0 +1,10 @@
+system_locale=en_US
+security_policy=NONE
+timezone=US/Eastern
+timeserver=localhost
+name_service=NONE
+terminal=vt100
+nfs4_domain=my.domain
+root_password=encryptedPASS
+network_interface=NONE { hostname=default }
+

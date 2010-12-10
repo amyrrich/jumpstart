@@ -1,0 +1,13 @@
+create
+set autoboot=true
+set zonepath=/zoneds/$FQDN
+add net
+set address=$PUBADDR
+set physical=$PUBIF
+end
+add net
+set address=$JNETADDR
+set physical=$JNETIF
+end
+verify
+commit

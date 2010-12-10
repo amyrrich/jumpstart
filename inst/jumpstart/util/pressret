@@ -1,0 +1,20 @@
+##
+
+# press return function
+
+pressret() {
+  # the press return to continue thing.
+  # Take all options and print each one out to stderr, then take
+  # an input line for a "press return to continue" type thing
+  for string in "$@" ; do
+    echo "$string" 1>&2
+  done
+  read re
+ 
+  # these are undocumented diagnostics tools
+  case $re in
+    sh)    /sbin/sh;;
+    exit)  exit;;
+  esac
+}
+

@@ -1,0 +1,278 @@
+##
+#
+#  WARNING!!!!
+#
+#  Since this disksuite scripts bases mirror numbers on slice numbers, it
+#  should ONLY be used for the boot disk and its mirror
+#
+
+# requires stringutil
+. $utildir/stringutil
+
+# base sanity checking
+if [ -z "$disksuitemirror" ]; then
+
+  pressret 'No $disksuitemirror list supplied in the configuration.' \
+           'Press return to continue or correct this and restart'
+
+fi
+
+PATH="/usr/xpg4/bin:/usr/opt/SUNWmd/sbin:$PATH"
+export PATH
+
+# if clusterid is not set, give it a value of nothing
+${clusterid:=}
+
+vfstab="${B}/etc/vfstab"
+
+# get a list of the file systems we're going to use for extra state
+# databases.
+# we need at least some of these since we can't add extra replicas
+# to existing file systems
+dblist=`df -k /spare/md[0-9]* | \
+   awk 'BEGIN {ORS=" "} /\/spare\/md[0-9]+$/ { if ( $1 != "Filesystem" ) print $1 }'`
+
+# unmount and comment out of vfstab, disksuite db partitions
+for n in /spare/md* ; do
+  umount $n
+done
+
+cp ${vfstab} ${vfstab}.$$
+sed '/\/spare\/md[0-9]/d' < ${vfstab}.$$ > ${vfstab}
+rm ${vfstab}.$$
+
+metatab="${B}/etc/lvm/md.tab"
+
+# add the state databases to the config file and initialise them
+echo >> $metatab
+echo "mddb01 -c 3 $dblist" >> $metatab
+echo >> $metatab
+metadb -a -f mddb01
+
+#if [ "X${clusterid}" != "X" ]; then
+#  # this is a cluster, and we need to set up the mail cluster metasets
+#  # if we ever do other clusters, we'll want to make this a variable in the
+#  # hostconf file
+#
+#  # now initialize all of the disksets
+#  for diskset in mail; do
+#    metaset -s ${diskset} -a -h `hostname`
+#  done
+#fi
+
+
+# now we start mirroring the list given in the config file
+
+for mount in ${disksuitemirror} ; do
+
+  # in various places we need the slash escaped version of $mount for sed
+  escmount="`slashescape $mount`"
+
+  # work out the partition we're dealing with
+  part=`df -k $mount | \
+    awk '/ '$escmount'$/ { if ( $1 != "Filesystem" ) print $1 }'`
+  # we also need the raw partition
+  rawpart=`echo $part | sed 's:/dsk/:/rdsk/:'`
+
+  # determine what slice we're dealing with, and use that number to create
+  # the metamirror number
+  count=`echo $part | sed 's:.*s\([0-9]\):\1:'`
+  if [ "X${count}" = "X0" ]; then
+    if [ "X${clusterid}" = 'X' ]; then
+      count=''
+    fi
+  fi
+
+  # here we set the count to 8 for the /globaldevices fs in a cluster
+  if [ "X${mount}" = 'X/globaldevices' ]; then
+    count=8
+  fi
+
+# work out where the mirror is
+  if [ "X${mount}" = "X/" ]; then
+    # the root mirror is at /spare/root
+    mpart=`df -k /spare/root | \
+      awk '/ \/spare\/root$/ { if ( $1 != "Filesystem" ) print $1 }'`
+    root="yes"
+    liveupart=""
+  elif [ "`echo ${mount} | sed 's:\(\/lu\/\).*:\1:'" = "/lu/" ]; then
+    mpart=`df -k /spare$mount | \
+      awk '/ \/spare'$escmount'$/ { if ( $1 != "Filesystem" ) print $1 }'`
+    liveupart="yes"
+    echo "live upgrade partition"
+    root=""
+  else
+    mpart=`df -k /spare$mount | \
+      awk '/ \/spare'$escmount'$/ { if ( $1 != "Filesystem" ) print $1 }'`
+    root=""
+    liveupart=""
+  fi
+
+  #echo "part = #$part#"
+  #echo "rawpart = #$rawpart#"
+  #echo "mpart = #$mpart#"
+  #echo "count = #$count#"
+
+  # check that all these partitions have been found
+  if [ -z "$part" -o -z "$rawpart" -o -z "$mpart" ]; then
+    pressret "One of the partition, raw partiton or mirror partition" \
+             "for $mount ended up being empty, can't build mirrors"
+  else
+
+    # create a base mirror for each
+    metainit -f d${clusterid}${count}1 1 1 $part
+    metainit -f d${clusterid}${count}2 1 1 $mpart
+
+    # create the one device mirror we'll add to later
+    metainit d${clusterid}${count}0 -m d${clusterid}${count}1
+
+    # put this into md.cf for reference and use later
+    echo "d${clusterid}${count}0 -m d${clusterid}${count}1 d${clusterid}${count}2 1" >> $metatab
+    echo "d${clusterid}${count}1 1 1 $part"                 >> $metatab
+    echo "d${clusterid}${count}2 1 1 $mpart"                >> $metatab
+    echo                                        >> $metatab
+
+    # deal with root mirroring
+    if [ -n "$root" ]; then
+      # this is the / fileystem, use metaroot for some of it
+
+      # get rid of the 2nd partition's entry
+      cp ${vfstab} ${vfstab}.$$
+      sed -e '/\/spare'$escmount'/d' \
+        < ${vfstab}.$$ > ${vfstab}
+      rm ${vfstab}.$$
+
+      # let metaroot make the rest of the changes
+      metaroot d${clusterid}${count}0
+
+      # now we need to change the eeprom to set up the alternate boot disk
+
+      # get the device path of the mirror disk and chop of the leading goop
+      mdev=`ls -l ${mpart} | awk '{print $11}' | sed -n 's/..\/..\/devices//p'`
+      echo "mdev=${mdev}"
+
+      # now we need to change sd, ssd, or dad to disk (scsi, fibre, or ide)
+      # test for standard sd device
+      if [ "X`echo ${mdev} | grep '/sd@'`" = "X${mdev}" ]; then
+        mirror1=`echo ${mdev} | sed -n 's/sd@/disk@/p'`
+      elif [ "X`echo ${mdev} | grep '/ssd@'`" = "X${mdev}" ]; then
+        mirror1=`echo ${mdev} | sed -n 's/ssd@/disk@/p'`
+      elif [ "X`echo ${mdev} | grep '/dad@'`" = "X${mdev}" ]; then
+        mirror1=`echo $mdev | sed -n 's/dad@/disk@/p'`
+      else
+        pressret "No valid disk type (ssd, sd, dad) found."
+      fi
+
+      echo "mirror1=${mirror1}"
+
+      # set up nvramrc and a devalias if we have a valid mirror
+      if [ "X${mirror1}" != "X" ]; then
+        echo "setting up nvramrc and a devalias for mirror1"
+        eeprom 'use-nvramrc?=true'
+        echo "saving old nvramrc settings"
+	eeprom nvramrc | \
+	  grep -v 'data not available' | grep -v 'devalias mirror1' | \
+	  sed 's/nvramrc=//g' > /tmp/nvramrc.$$
+	echo "devalias mirror1 ${mirror1}" >>  /tmp/nvramrc.$$
+
+        eeprom nvramrc="`cat /tmp/nvramrc.$$`"
+	rm /tmp/nvramrc.$$
+
+        # find our current boot disk, and drop everything else from the bootpath
+        bdisk=`eeprom boot-device| sed -n 's/boot-device=//p' |awk '{print $1}'`
+        # set our new boot path
+        if [ "X${bdisk}" != "X" ]; then
+          echo "setting boot-device to \"${bdisk} mirror1\""
+          eeprom boot-device="${bdisk} mirror1"
+        else
+	  pressret "no valid boot disk found, not setting boot-path"
+        fi
+      else
+        pressret "can not find mirror device name, not changing eeprom"
+      fi
+
+      # also make sure that we can boot with only half of the replicas, since
+      # we tend not to store them anywhere but the two boot mirrors
+
+      echo '* enable booting with only half of the replicas' >> /etc/system
+      echo 'set md:mirrored_root_flag=1' >> /etc/system
+
+    else
+      # mess with the vfstab to reference the mirror and take out the
+      # submirrors
+      cp ${vfstab} ${vfstab}.$$
+      sed -e '/\/spare'$escmount'/d' \
+          -e 's:'$part':/dev/md/dsk/d'${clusterid}${count}'0:' \
+          -e 's:'$rawpart':/dev/md/rdsk/d'${clusterid}${count}'0:' \
+        < ${vfstab}.$$ > ${vfstab}
+      rm ${vfstab}.$$
+
+      # if it's a liveupgrade partition, remove it from the vfstab, too
+      if [ -n "$liveupart" ]; then
+        # remove the liveupgrade partitions from the vfstab and umount them
+        cp ${vfstab} ${vfstab}.$$
+        sed -e '/'$escmount'/d' < ${vfstab}.$$ > ${vfstab}
+        rm ${vfstab}.$$
+      fi
+    fi
+  fi
+done
+
+# deal with swap, if any is to be mirrored
+if [ -n "$disksuiteswapmirror" ]; then
+  for swap in $disksuiteswapmirror ; do
+
+    OIFS="$IFS"
+    IFS=":"
+    set -- $disksuiteswapmirror
+    IFS="$OIFS"
+
+    if [ -z "$1" -o -z "$2" ]; then
+      pressret "Bad disksuiteswapmirror seting: $disksuiteswapmirror"
+    else
+
+      # find out what partition slice we're dealing with
+      count=`echo $1 | sed 's:.*s\([0-9]\):\1:'`
+      if [ "X${count}" = "X0" ]; then
+        if [ "X${clusterid}" = 'X' ]; then
+          count=''
+        fi
+      fi
+
+      # create a base mirror for each
+      metainit -f d${clusterid}${count}1 1 1 $1
+      metainit -f d${clusterid}${count}2 1 1 $2
+
+      # create the one device mirror we'll add to later
+      metainit d${clusterid}${count}0 -m d${clusterid}${count}1
+
+      # put this into md.cf for reference and use later
+      echo "d${clusterid}${count}0 -m d${clusterid}${count}1 d${clusterid}${count}2" >> $metatab
+      echo "d${clusterid}${count}1 1 1 /dev/dsk/$1"        >> $metatab
+      echo "d${clusterid}${count}2 1 1 /dev/dsk/$2"        >> $metatab
+      echo                                        >> $metatab
+
+      # mess with the vfstab to reference the mirror and take out the
+      # submirrors
+      cp ${vfstab} ${vfstab}.$$
+
+      # we need the slash escaped version of $1 and $2 for sed
+      escone="`slashescape $1`"
+      esctwo="`slashescape $2`"
+
+      sed -e 's:^/dev/dsk/'$1':/dev/md/dsk/d'${clusterid}${count}'0:' \
+          -e '/^\/dev\/dsk\/'$escone'/d' \
+          -e '/^\/dev\/dsk\/'$esctwo'/d' \
+        < ${vfstab}.$$ > ${vfstab}
+      rm ${vfstab}.$$
+
+    fi
+
+  done
+fi
+
+# leave the second mirror script the number of things we created
+touch ${B}/reconfigure
+lockfs -fa
+reboot
+##

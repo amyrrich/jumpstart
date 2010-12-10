@@ -1,0 +1,51 @@
+
+if [ "$?" != "0" ]; then
+  pressret "Patch install MOUNT FAILED." \
+           "Press return to continue or restart:\c"
+fi
+
+# Do we have a patch directory ?
+if [ -d /mnt/$patcharch ]; then
+
+  echo "installing patches"
+
+  # Turn fastfs on for all partitions bar /var, since this might be causing
+  # problems in the installation process.
+  /mnt/jumpstart/files/fastfs -a fast
+  /mnt/jumpstart/files/fastfs /var slow
+
+  touch /var/sadm/install_data/patch.log
+
+  for dir in $patchlist ; do
+
+    echo "Patching from $dir"
+    # Install the patches, log it all, and give us the basic idea without
+    # so much extranous junk.
+    patchinstall "/mnt/$patcharch/$dir" 2>&1  | \
+      tee -a /var/sadm/install_data/patch.log | \
+      egrep -v -f /mnt/jumpstart/files/patch.grepout.txt
+  done
+
+  cd /
+  doreboot=yes
+
+  echo "Running fix-modes."
+  /mnt/jumpstart/files/fix-modes -qqq
+  /mnt/jumpstart/files/fastfs -a slow
+
+else
+
+  pressret "Patch install MOUNT FAILED, or no patches available for this" \
+           "arch ? Press return to continue or restart:\c"
+
+  doreboot=no
+fi
+
+echo "unmounting"
+umount /mnt
+
+rm $0
+#/etc/rc2.d/S99c.patches
+if [ "$doreboot" = "yes" ]; then
+  reboot
+fi

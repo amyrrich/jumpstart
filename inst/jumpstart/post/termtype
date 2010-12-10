@@ -1,0 +1,11 @@
+##
+#
+
+if [ "`uname -p`" = "sparc" ]; then
+  echo "Changing console terminal type to vt100"
+  cp -p $B/etc/inittab $B/etc/inittab.sun
+  cat $B/etc/inittab | sed 's/-T sun/-T vt100/g' > /tmp/inittab.vt100
+  cp -pf /tmp/inittab.vt100 $B/etc/inittab
+  chmod 0544 $B/etc/inittab
+fi
+

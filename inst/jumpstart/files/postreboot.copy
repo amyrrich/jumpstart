@@ -1,0 +1,64 @@
+
+# Where do I get my file list from ?
+listfile="/etc/.postreboot"
+
+echo "mounting /inst from jumpstart server"
+# We need to use the IP from the post install script.
+mount ${jumpstartip}:/inst /mnt
+
+if [ "$?" != "0" ]; then
+  pressret "extpkg install MOUNT FAILED." \
+           "Press return to continue or restart:\c"
+fi
+
+echo "Getting host config"
+# Grab the configuration file variables.
+. $utildir/gethostconf
+# make the unameinfo available
+. $utildir/douname
+
+# Base directory is now /
+B=/
+
+postreboot=`cat $listfile`
+echo "postreboot files are: \"$postreboot\""
+
+# Run the postreboot sub scripts listed inthe config file
+echo "Running postreboot scripts:"
+
+set -- $postreboot
+
+while [ -n "$postreboot" ]; do
+
+  script="$1"
+###  thisscript=/mnt/jumpstart/scripts/post/$script
+  thisscript=/mnt/jumpstart/post/$script
+  shift
+  postreboot="$*"
+
+  # Write out the remaining list of scripts, so if the script
+  # reboots the machine we don't try and run it again when we
+  # get back to this point.
+  echo "$postreboot" > $listfile
+
+  if [ -r "$thisscript" ]; then
+    echo "POSTREBOOT SCRIPT: $script"
+
+    # and then actually run the script
+    . $thisscript
+  else
+###    pressret "Script \"scripts/post/$script\"" \
+    presret "Script \"post/$script\"" \
+             "not readable or does not exist." \
+             "Skipping. Press return to continue."
+  fi
+
+  set -- $postreboot
+done
+
+
+echo "unmounting"
+fuser -k -c /mnt > /dev/null
+umount /mnt
+
+rm $listfile $0

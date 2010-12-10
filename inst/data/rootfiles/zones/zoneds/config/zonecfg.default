@@ -1,0 +1,6 @@
+create
+set autoboot=true
+set zonepath=/zoneds/default
+verify
+commit
+

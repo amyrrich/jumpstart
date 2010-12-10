@@ -1,0 +1,39 @@
+##
+#
+
+# Which sets do we copy ?
+echo "File sets: \"$rootfiles\" from /install/data/rootfiles"
+
+if [ -z "$B" ]; then
+  B="/"
+fi
+
+for dir in $rootfiles ; do
+  thisdir="data/rootfiles/$dir"
+
+  # Yes, copy the contents.
+  echo "Copying files from $dir set."
+  copied=""
+
+  # and take the special dirs that go with it, if they exist
+  for dirlist in $thisdir $thisdir-$os $thisdir-$os-$ver \
+                          $thisdir-$os-$proc $thisdir-$os-$ver-$proc ; do
+
+    if [ -d /mnt/$dirlist ]; then
+      echo "  copying from $dirlist."
+      cd /mnt/$dirlist
+      tar cFf - . | (cd $B; tar xpf -)
+      copied="yes"
+    fi
+  done
+
+  if [ -z "$copied" ]; then
+    # Nothing found, error.
+    pressret "Directory \"$thisdir\"" \
+             "and suffixes doesn't exist, skipping. Press return to continue."
+
+  fi
+
+done
+
+cd /

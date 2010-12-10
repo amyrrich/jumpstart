@@ -1,0 +1,39 @@
+# partitioning for the cluster node yew
+install_type    initial_install
+isa_bits	64
+system_type     standalone
+partitioning    explicit
+
+# swap listed first on s0 to get arond cylinder 0 issue
+filesys         c1t0d0s0 8192 swap
+filesys         c0t8d0s0 8192 /spare/swap
+
+# the base filesystem and its mirror
+filesys 	c1t0d0s1 22016 / logging
+filesys         c0t8d0s1 22016 /spare/root
+
+filesys 	c1t0d0s3 8192 /var logging
+filesys         c0t8d0s3 8192 /spare/var
+
+# Alternate / and /var filesystems for liveupgrade and their mirrors
+filesys		c1t0d0s5 22016 /lu/root
+filesys         c0t8d0s5 22016 /spare/lu/root
+
+filesys		c1t0d0s6 8192 /lu/var
+filesys         c0t8d0s6 8192 /spare/lu/var
+
+# metadb partitions
+filesys		c1t0d0s7 30 /spare/md1
+filesys		c0t8d0s7 30 /spare/md2
+
+# some space set aside on the second disk
+filesys         c1t1d0s0 40960
+filesys         c0t9d0s0 40960
+
+# the rest of the space on the boot devices in /globaldevices for the cluster
+filesys		c1t0d0s4 free /globaldevices logging
+filesys		c0t8d0s4 free /spare/globaldevices
+
+# the rest of the space in /local
+filesys		c1t1d0s4 free /local logging
+filesys		c0t9d0s4 free /spare/local

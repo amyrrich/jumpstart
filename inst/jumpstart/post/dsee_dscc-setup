@@ -1,0 +1,25 @@
+#!/bin/sh
+
+echo "Starting DSEE and DSC install prep"
+
+echo "Checking if already installed ..."
+# Bail out if we detect that the main directory package is somehow already installed
+if [ `pkginfo |grep -c SUNWldap-directory` -ne 0 ]; then exit; fi
+
+CWD="`pwd`"
+echo "$CWD"
+
+mkdir /usr/local/post-install
+
+echo "Copying files ..."
+
+cp /mnt/data/packages/DSEE_DSCC_63/shell_DSEE_DSCC_install.sh /etc/rc3.d/S99_shell_DSEE_DSCC_install.sh 
+cp /mnt/data/packages/DSEE_DSCC_63/launch_DSEE_DSCC_install.sh /usr/local/post-install/launch_DSEE_DSCC_install.sh
+cp /mnt/data/packages/DSEE_DSCC_63/prep_DSEE_DSCC_63.sh /usr/local/post-install/prep_DSEE_DSCC_63.sh
+cp /mnt/data/packages/DSEE_DSCC_63/install_DSEE_DSCC_63.sh /usr/local/post-install/install_DSEE_DSCC_63.sh
+cp -p /mnt/data/packages/DSEE_DSCC_63/ndd-nettune.xml /usr/local/post-install
+cp -p /mnt/data/packages/DSEE_DSCC_63/ndd-nettunel /usr/local/post-install
+cp -p /mnt/data/packages/DSEE_DSCC_63/install_nettune.sh /usr/local/post-install
+
+
+

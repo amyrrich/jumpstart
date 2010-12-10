@@ -1,0 +1,113 @@
+##
+# This is a host config file.
+# The file is interpreted by sh with '. filename' and contains configuration
+# information about how the host should be configured.
+ 
+# Any lists are WHITE SPACE seperated.
+
+#######################################################################
+####
+#### Uncomment the lines that apply to the machine you are building.
+#### Leave the others commented out.
+####
+#######################################################################
+ 
+# This is the list of files under /inst/jumpstart/prof with the profile.
+# (disk layout and initial install, etc)
+# This file MUST BE FORMATTED CORRECTLY.
+### profile="sol9-c0t0-c0t1-72G"
+ 
+# This is the list of files under /inst/jumpstart/ospkg with the list of OS
+# packages that should be installed.
+# files MUST BE FORMATTED CORRECTLY.
+# Format: use "(package|cluster) <pkg/clustername> (add|remove)" one per line
+###ospkglist="server-64bit.sol9 X-64bit.sol9"
+###ospkglist="sol10-server sol10-server-sparc"
+
+# This is the file under /inst/jumpstart/extpkgs with the list of external
+# packages that should be installed.
+# For extpkgs to be installed 'extpkgs' must be in the postscr list.
+# If you're listing disksuite for a Solaris 8 host, be sure to list it last
+# because it reboots the machine and packages listed after are not installed.
+###extpkglist="sol10-sparc-base sol10-sparc-mysql5-client"
+ 
+# This is the list of package groups under /inst/data/packages
+# that should be installed (for example: cde, disksuite, presto)
+# For packages to be installed 'packages' must be in the postscr list.
+### All solaris 9 machines should, at a minimum have:
+packagelist="RICHPse JDK-1_5_0_12 SunExplorer Sneep Legato"
+
+# This is the sets of files to copy
+# File trees are under /install/data/rootfiles. More than one can be
+# copied.
+rootfiles="defaults roothome solaris-patching"
+
+# This is the list of post install scripts from /install/jumpstart/scripts/post to run.
+# Order is important. Patches should be before files are copied.
+#
+###postscr="mountinst termtype rootpw postreboot umountinst"
+###postscr="mountinst termtype rootpw postreboot10 umountinst"
+
+# This is the list of scripts from /install/jumpstart/scripts/post to run 
+# after a reboot.
+# Order is important.
+#
+##### NOTE! #####
+# You will need to remove disksuite-mirror1 and disksuite-mirror2 if you are
+# jumpstarting a solaris 10 box
+###postreboot="fs-setup rootfiles setup-scripts packages extpkgs catman smf-service-setup disksuite-mirror1 disksuite-mirror2 pca-patching cleanup-and-cfengine reboot"
+###postreboot="fs-setup rootfiles setup-scripts packages extpkgs catman smf-service-setup pca-patching cleanup-and-cfengine reboot"
+
+
+# The list of partitions to be mirrored for sol8 and sol9 only
+### disksuitemirror="/ /var /lu/root /lu/var /local"
+
+# The list of swap partitions and their mirrors, in pair separated by a ':'
+# check the prototype file to verify which partitions are listed as swap.
+# for sol8 and sol9 only
+### disksuiteswapmirror="c0t0d0s0:c0t1d0s0"
+
+# if the nfsHome variable is has a value, the system is using the automounter
+# to populate /home
+# nfsHome=1
+
+###############################################################################
+# Services to enable or disable via svcadm in Solaris 10 and later
+###############################################################################
+enable_services='ntp ipfilter'
+disable_services='stdiscover stlisten'
+
+###############################################################################
+# Cluster node config - this section is only needed on solaris-cluster boxes
+###############################################################################
+
+# The id of this machine in the cluster.  This should match the cluster
+# node id, and MUST be unique within a cluster.  Starts at 1 (for the primary
+# node).  This is also used to determine the prefix for SVM disks (eg 1 ==
+# a starting disk of 100.  This is to guarantee that SVM device names are
+# unique thoughout the cluster.
+#clusterid=1
+
+###  Cluster config information below here should be the same on all nodes
+###  within a given cluster
+
+# name of the cluster
+#clustername="clustername"
+
+# The primary (first) node in the cluster
+#primarynode="primarynode.my.domain"
+
+# The list of cluster nodes, starting with the primary node.
+# Syntax is: node=${primarynode}[,node=<nodename>]
+# Make sure there are no spaces between node names or at the end.  This line
+# is used as part of a cluster install command.
+#clusternodelist="node=${primarynode},node=secondarynode.my.domain"
+
+# Interconnect interface and switch names.  These are the interconnect
+# interface names for this machine in the cluster.  The interface numbers and
+# the switch number should match, just so it's easy to tell what's what.
+# These are used in the cluster install script to set up the interconnects.
+#icif1=ce1
+#icif2=qfe3
+#icsw1=switch1
+#icsw2=switch3

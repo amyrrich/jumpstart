@@ -1,0 +1,10 @@
+#
+# setup SAN stuff after install
+
+echo "running cfgadm to configure fiber controllers"
+cfgadm -c configure c2 2>&1 >/dev/null
+cfgadm -c configure c3 2>&1 >/dev/null
+cfgadm -c configure c4 2>&1 >/dev/null
+cfgadm -c configure c5 2>&1 >/dev/null
+
+reboot -- -r

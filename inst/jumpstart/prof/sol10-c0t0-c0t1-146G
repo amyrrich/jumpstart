@@ -1,0 +1,17 @@
+# partitioning based on 146gb disk.
+install_type    initial_install
+isa_bits	64
+system_type     standalone
+partitioning    explicit
+
+filesys         mirror:d0 c0t0d0s0 c0t1d0s0 8192 /
+filesys         mirror:d10 c0t0d0s1 c0t1d0s1 8192 swap
+filesys 	mirror:d30 c0t0d0s3 c0t1d0s3 8192 /var
+filesys         mirror:d50 c0t0d0s5 c0t1d0s5 8192 /lu/root
+filesys         mirror:d60 c0t0d0s6 c0t1d0s6 8192 /lu/var
+
+metadb          c0t0d0s7 size 8192 count 3
+metadb          c0t1d0s7 size 8192 count 3
+
+
+filesys         mirror:d40 c0t0d0s4 c0t1d0s4 free /local

@@ -1,0 +1,63 @@
+# The following are the basic packages that get installed on 
+# every solaris machine we build.  These are here to
+# make our lives easier, so we have a standard toolset to
+# work from.  These packages need to live in
+# /inst/data/extpkgs/SunOS-5.10-sparc in order to be successfully
+# installed.
+
+libgcc-3.4.6-owc1-sol10-sparc
+
+tar-1.19-owc1-sol10-sparc
+
+gawk-3.1.6-owc1-sol10-sparc
+
+nrpe2-2.5.1-owc13-sol10-sparc
+
+openssl-0.9.8g-owc1-sol10-sparc
+
+diffutils-2.8.1-owc2-sol10-sparc
+
+lsof-4.78-owc1-sol10-sparc
+
+screen-4.0.2-owc1-sol10-sparc
+
+rcs-5.7-owc1-sol10-sparc
+
+sudo-1.6.9p14-owc1-sol10-sparc
+
+top-3.7-owc1-sol10-sparc
+
+vim-7.1-owc1-sol10-sparc
+
+wget-1.11-owc1-sol10-sparc
+
+expat-2.0.1-owc1-sol10-sparc
+
+libiconv-1.9.1-owc1-sol10-sparc
+
+gettext-0.17-owc1-sol10-sparc
+
+coreutils-6.9-owc1-sol10-sparc
+
+perl-5.8.8-owc1-sol10-sparc
+
+PERLnetnetmask588-1.9012-owc1-sol10-sparc
+
+rsync-3.0.0-owc1-sol10-sparc
+
+db4-4.6.21-owc1-sol10-sparc
+
+nagiosplg-1.4.11-owc45-sol10-sparc
+
+cfengine-2.1.20-owc2-sol10-sparc
+
+orcallator-r535-owc1-sol10-sparc
+
+neon-0.25.5-owc1-sol10-sparc
+
+subversion-client-1.4.6-owc3-sol10-sparc
+
+nrpe-2.12-owc4-sol10-sparc
+
+nagios-plugins-1.4.14-owc4-sol10-sparc
+

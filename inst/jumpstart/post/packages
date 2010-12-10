@@ -1,0 +1,59 @@
+##
+#
+
+# One day sun will realise what -R is for and adhere to it on all their
+# packages ....
+
+# Do we have any packages to install ?
+if [ -z "$packagelist" ]; then
+  echo "No major packages to install."
+else
+
+  # Required utility things
+  . $utildir/pkginstall
+  . $utildir/patchinstall
+
+  # If we have a default zone, boot it
+  if [ -f /usr/sbin/zoneadm ]; then
+    zoneadm list -cv 
+    DEF=`/usr/sbin/zoneadm -z default list -v | awk '/default/ {print $3}'`
+    if [ "X${DEF}" != 'Xrunning' ]; then
+      zoneadm -z default boot
+      sleep 120
+      zoneadm list -cv
+    fi
+  fi
+
+  # Run each install script in turn. These scripts should either do
+  # the installation here and now or leave scipts in /etc/rc2.d so
+  # all the broken packages that won't install during jumpstart will
+  # install after the reboot.
+  # One day all of Sun will realise what the -R option is for and this
+  # junk won't be needed (hah).
+
+  for pkg in $packagelist ; do
+    thispkg="data/packages/$pkg"
+
+    if [ -f "/mnt/$thispkg/install" ]; then
+      
+      # So the install scripts can use what directory they are in.
+      cd /mnt/$thispkg
+
+      echo "Running install script: \"$thispkg/install\""
+      . /mnt/$thispkg/install
+    else
+      pressret "No install script: \"$thispkg/install\"" \
+               "Skipping. Press return to continue."
+    fi
+
+  done
+
+  cd /
+
+  echo "rebooting"
+  if [ `uname -r` = '5.9' ] ; then
+    sync; sync; reboot -- -r
+  else
+    sync; sync; reboot -- -m verbose -r
+  fi
+fi

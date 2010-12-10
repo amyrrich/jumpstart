@@ -1,0 +1,26 @@
+#!/bin/sh
+
+case "$1" in
+   'start')
+       if [ ! -d "/mnt/jumpstart" ]; then 
+
+          echo "Mailing to js-done-rt@my.domain"
+          /bin/mailx -s "JumpEngine completed -- `/bin/hostname`" js-done-rt@my.domain < /root/cfengine/end-of-je-message.txt &
+
+          echo "Deleting this script from /etc/rc3.d"
+          /bin/rm /etc/rc3.d/S99done_jumpstart_mail
+
+	  echo "Touching the OK file..."
+	  /bin/touch /root/cfengine/OK_DONE
+
+       else 
+          echo "/mnt/jumpstart still exists, not running cfengine script."
+       fi
+       ;;
+
+	'stop')
+	  echo "Tried to stop /etc/rc3.d/S99done_jumpstart_mail."
+	  echo "This script doesn't -stop-."
+          echo "So something broke."
+          ;;
+esac

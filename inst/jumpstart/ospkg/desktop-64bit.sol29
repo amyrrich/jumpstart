@@ -1,0 +1,297 @@
+#
+# The first part of this file contains the minimum OS clusters and packages
+# to be installed on all servers.  For additional packages (eg for desktops
+# or special servers), see the following sections.
+#
+##############################################################################
+# 
+# minimum required software for a standalone, non-networked system
+#
+cluster	SUNWCreq
+#
+# but we don't want these parts of SUNWCreq
+#
+cluster	SUNWCkrb5	delete	# Kerberos v5
+cluster	SUNWCnfss	delete	# nfs server
+cluster	SUNWCnis	delete	# nis
+cluster	SUNWCnsvc	delete	# remote network services/cmds
+cluster	SUNWCsndm	delete	# sendmail
+#package	SUNWauda	delete	# audio applications
+package	SUNWaudd	delete	# audio drivers
+package	SUNWatfsr	delete	# autoFS
+package	SUNWatfsu	delete	# autoFS
+package	SUNWdtcor	delete	# /usr/dt anchor
+package	SUNWftpr	delete	# FTP server and utils
+package	SUNWftpu	delete	# FTP server and utils
+#package	SUNWauddx	delete	# audio drivers (64bit)
+#
+# Base Additional software
+#
+cluster	SUNWCcpc	add	# cpu performance counter driver, utils
+cluster	SUNWCcpcx	add	# cpu performance counter driver, utils (64bit)
+cluster	SUNWCacc	add	# system accounting (sar)
+cluster	SUNWCadm	add	# system + network admin tools
+cluster	SUNWCvol	add	# volume mgmt
+cluster	SUNWCvolx	add	# volume mgmt (64bit)
+cluster	SUNWCfwutil	add	# freeware utils (patch, less, rpm)
+cluster	SUNWCfwshl	add	# freeware shells (bash, tcsh, zsh)
+cluster	SUNWCfwcmp	add	# freeware compression utils (bzip, gzip, zip, zlib)
+cluster	SUNWCfwcmpx	add	# freeware compression utils (64bit)
+cluster	SUNWCced	add	# Sun Gigaswift Ethernet Adapter sw
+cluster	SUNWCcedx	add	# Sun GigaSwift Ethernet Adapter sw (64-bit)
+cluster	SUNWCfct	add	# fiber channel transport
+cluster	SUNWCfctx	add	# fiber channel transport (64bit)
+cluster	SUNWCirf	add	# X11 ISO-8859-x required fonts
+cluster	SUNWCiof	add	# X11 ISO-8859-x optional fonts
+cluster	SUNWCide	add	# PCI disk drivers (IDE)
+cluster	SUNWCidex	add	# PCI disk drivers (64bit)
+#cluster	SUNWClu		add	# Solaris Live Upgrade Software
+#
+package	SUNWbtool	add	# /usr/ccs sw devel utils
+package	SUNWbtoox	add	# /usr/ccs sw devel utils (64bit)
+package	SUNWcpp		add	# cpp
+package	SUNWlibm	add	# forte developer bundled libm
+package	SUNWlmx		add	# forte developer bundled misc libm files (64bit)
+package	SUNWarc		add	# ar format libs
+package	SUNWarcx	add	# ar format libs (64bit)
+package	SUNWesxu	add	# extended system utils (64bit)
+package	SUNWhmd		add	# sunswift adapter drivers
+package	SUNWhmdx	add	# sunswift adapter drivers (64bit)
+package	SUNWipc		add	# interprocess communication
+package	SUNWlibC	add	# sun workshop bundled libC
+package	SUNWlibCx	add	# sun workshop bundled libC (64bit)
+package	SUNWlibCf	add	# sun workshop bundled libC (cfront ver)
+package	SUNWpd		add	# PCI bus drivers
+package	SUNWpdx		add	# PCI bus drivers (64bit)
+package	SUNWsprot	add	# solaris bundled tools (make)
+package	SUNWsprox	add	# sun workshop bundled make library (64bit)
+package	SUNWtoo		add	# programming tools (ldd, truss)
+package	SUNWtoox	add	# programming tools (64bit)
+package	SUNWusx		add	# ultrasparc cpu device driver (64bit)
+package	SUNWter		add	# terminfo data
+package	SUNWhea		add	# header files
+package	SUNWsutl	add	# static utils
+package	SUNWman		add	# man pages
+package	SUNWdoc		add	# doc utils (*roff)
+package	SUNWtnetc	add	# telnet cmd
+package	SUNWrcmdc	add	# r* cmds (including snoop, dammit)
+package	SUNWifp		add	# fc-al qlogic fc family driver
+package	SUNWifpx	add	# fc-al qlogic fc family driver (64bit)
+package	SUNWpl5m	add	# perl 5.6.1 man pages
+package	SUNWpl5p	add	# perl 5.6.1 POD docs
+package	SUNWinst	add	# Sun install sw
+package	SUNWxcu4	add	# XCU4 utils
+package	SUNWdmfex	add	# dmfe ethernet driver (64bit)
+package	SUNWmdb		add	# modular debugger (mdb)
+package	SUNWmdbx	add	# modular debugger (mdb) (64bit)
+package	SUNWluxop	add	# enterprise network array fw, utils
+package	SUNWluxox	add	# enterprise network array fw, utils (64bit)
+package	SUNWqlc		add	# qlogic FC driver
+package	SUNWqlcx	add	# qlogic FC driver (64bit)
+package	SUNWfruid	add	# prtfru cmd, lib
+package	SUNWfruip	add	# prtfru data module
+package	SUNWvld		add	# Vlan util
+package	SUNWvldx	add	# Vlan util (64bit)
+package SUNWtcpd	add	# TCP wrapper utilities
+
+#
+##############################################################################
+#
+# Printing (for calendar)
+#
+#package		SUNWpcr		add	# print client
+#package		SUNWpcu		add	# print client
+#package		SUNWppm		add	# printer mgmt tool
+#package		SUNWpsf		add	# postscript filters
+#package		SUNWpsr		add	# print server
+#package		SUNWpsu		add	# print server
+#package		SUNWscplp	add	# SunOS 4 print utils (lpc)
+#
+# LDAP requirements
+#
+#package		SUNWnisu	add	# NIS utils
+#package		SUNWfns		add	# Federated Naming Service
+#package		SUNWfnsx	add	# Federated Naming Service (64bit)
+#package		SUNWgss		add	# GSSAPI v2
+#package		SUNWgssx	add	# GSSAPI v2 (64bit)
+#package		SUNWgssc	add	# GSSAPI v2 config
+#
+# SNMP
+#
+#package		SUNWmibii	add	# snmp daemon
+#package		SUNWsacom	add	# snmp root files
+#package		SUNWsasnm	add	# snmp libs
+#package		SUNWsasnx	add	# snmp libs (64bit)
+#
+# Java
+#
+#package		SUNWj2man	add	# JDK 1.2 man pages
+#package		SUNWj2rt	add	# JDK 1.2 run time env
+#package		SUNWj2pi	add	# Java plug-in 1.2.2 config
+package		SUNWj3rt	add	# J2SDK 1.4 runtime env
+package		SUNWj3man	add	# J2DSK 1.4 man pages
+#package		SUNWj3cfg	add	# SUNWj3rt post configuration
+package		SUNWj3rtx	add	# J2SDK 1.4 runtime env (64-bit)
+package		SUNWj3irt	add	# JDK 1.4 I18N run time env
+#
+# X Window System
+#
+package		SUNWmfrun	add	# motif runtime kit
+package		SUNWxwdv	add	# X kernel drivers
+package		SUNWxwice	add	# X interclient exchange libs
+package		SUNWxwmod	add	# X kernel modules
+package		SUNWxwcft	add	# X common fonts
+package		SUNWxwcsl	add	# type1 fonts
+package		SUNWxwdvx	add	# X kernel drivers (64bit)
+package		SUNWxwfnt	add	# X required fonts
+package		SUNWxwics	add	# X interclient exchange libs (64bit)
+package		SUNWxwrtl	add	# X runtime lib links
+package		SUNWxwman	add	# X man pages
+package		SUNWxwmox	add	# X kernel modules (64bit)
+package		SUNWxwplt	add	# X sw (incl. xauth)
+package		SUNWxwplx	add	# X sw (64bit)
+package		SUNWxwpsr	add	# sun4u optimized X modules
+package		SUNWxwrtx	add	# X runtime lib links (64bit)
+package		SUNWxwslb	add	# X static libs
+package		SUNWxwslx	add	# X static libs (64bit)
+
+# X Window System bits for desktops
+#
+package		SUNWxwopt	add	# X optional software
+package		SUNWxwsvr	add	# X screen saver
+package		SUNWm64		add	# M64 graphics driver
+package		SUNWm64x	add	# M64 graphics driver (64bit)
+package		SUNWm64w	add	# M64 graphics
+package		SUNWm64cf	add	# M64 graphics config util
+#
+# X Window System development bits (headers, etc)
+#
+#package		SUNWxwhl	add	# X headers
+#package		SUNWxwinc	add	# X include files
+#
+# Localization (webmail)
+#
+#package		SUNWcamos	add	# central america
+#package		SUNWcamox	add	# central america (64bit)
+#package		SUNWceuos	add	# central europe
+#package		SUNWceuox	add	# central europe (64bit)
+#package		SUNWeeuos	add	# eastern europe
+#package		SUNWeeuox	add	# eastern europe (64bit)
+#package		SUNWnamos	add	# northern america
+#package		SUNWnamox	add	# northern america (64bit)
+#package		SUNWneuos	add	# northern europe
+#package		SUNWneuox	add	# northern europe (64bit)
+#package		SUNWsamos	add	# southern america
+#package		SUNWsamox	add	# southern america
+#package		SUNWseuos	add	# southern europe
+#package		SUNWseuox	add	# southern europe (64bit)
+#package		SUNWweuos	add	# western europe
+#package		SUNWweuox	add	# western europe (64bit)
+#package		SUNWauaos	add	# Australasia
+#package		SUNWauaox	add	# Australasia (64bit)
+#package		SUNWmeaos	add	# middle easts
+#package		SUNWmeaox	add	# middle east (64bit)
+#package		SUNWnafos	add	# nothern africa
+#package		SUNWnafox	add	# nothern africa (64bit)
+#
+# GNOME
+#
+#cluster		SUNWCgnbaslib64	add	# base libs (64bit)
+#cluster		SUNWCgnapps	add	# apps
+#cluster		SUNWCgnbaslib	add	# base libs
+#cluster		SUNWCgndev	add	# developer pkgs
+#cluster		SUNWCgndevlib	add	# developer libs
+#cluster		SUNWCgnrun	add	# runtime
+#cluster		SUNWCgnex	add	# extras
+#package		SUNWjpg		add	# JPG utils, libs
+#package		SUNWjpgx	add	# JPG utils, libs (64bit)
+#package		SUNWxml		add	# XML lib
+#package		SUNWTiff	add	# TIFF libs
+#package		SUNWTiffx	add	# TIFF libs (64bit)
+#package		SUNWpng		add	# PNG libs
+#package		SUNWpngx	add	# PNG libs (64bit)
+#package		SUNWlibpopt	add	# cmd line parsing lib
+#package		SUNWlibpopt-64	add	# cmd line parsing lib (64bit)
+#package		SUNWlibpopt-share	add	# cmd line parsing lib
+#package		SUNWfreetype2	add	# freetype 2.1.2 font lib
+#package		SUNWfreetype2-64	add	# freetype 2.1.2 font lib (64bit)
+#package		SUNWlxsl	add	# XSLT libs
+#package		SUNWlxmlx	add	# XML libs (64bit)
+#package		SUNWlxslx	add	# XSLT libs (64bit)
+#
+# SunOS 4.x compatability
+#
+#package		SUNWscpr	# sunos4 compat, /etc links
+#package		SUNWscpu	# /usr/ucb stuff
+#package		SUNWscpux	# /usr/ucb stuff (64bit)
+#package		SUNWsra		# /usr/ucblib ar format libs
+#package		SUNWsrh		# /usr/ucbinc headers
+#
+##############################################################################
+#
+# Packages included in SUNWCreq
+#
+#cluster	SUNWCbs		# bootparamd, rarpd
+#cluster	SUNWCcs		# core solaris
+#cluster	SUNWCkrb5	# Kerberos v5
+#cluster	SUNWCmd		# solaris volume manager
+#cluster	SUNWCnfsc	# nfs client
+#cluster	SUNWCnfss	# nfs server
+#cluster	SUNWCnis	# nis
+#cluster	SUNWCsndm	# sendmail
+#package	SUNWauda	# audio applications
+#package	SUNWaudd	# audio drivers
+#package	SUNWadmr	# system init programs/scripts
+#package	SUNWatfsr	# autoFS
+#package	SUNWatfsu	# autoFS
+#package	SUNWbip		# basic IP cmds (ping, ftp)
+#package	SUNWbzip	# bzip
+#package	SUNWcar		# core software
+#package	SUNWdfb		# dumb frame buffer device drivers
+#package	SUNWdtcor	# /usr/dt anchor
+#package	SUNWesu		# system utils (awk, etc)
+#package	SUNWftpr	# FTP server and utils
+#package	SUNWftpu	# FTP server and utils
+#package	SUNWkey		# keyboard config tables
+#package	SUNWkvm		# core software
+#package	SUNWlibms	# Forte Developer Bundled shared libm
+#package	SUNWlldap	# ldap libs
+#package	SUNWloc		# localization utils
+#cluster	SUNWCpicl	# PICL
+#package	SUNWpl5u	# perl 5.6.1 (core)
+#package	SUNWpl5v	# perl 5.6.1 (non-core)
+#package	SUNWsolnm	# Enable Solaris Name in /etc/release
+#package	SUNWswmt	# install and patch utils
+#package	SUNWudf		# universal disk format 1.50
+#package	SUNWudfr	# universal disk format 1.50
+#package	SUNWwbsup	# WAN boot support
+#package	SUNWwsr2	# product registry & web start runtime
+#package	SUNWxwdv	# X device drivers
+#package	SUNWxwmod	# X kernal modules
+#package	SUNWauddx	# audio drivers (64bit)
+#package	SUNWcarx	# core software (64bit)
+#package	SUNWcslx	# core software (64bit)
+#package	SUNWcsxu	# core software (64bit)
+#package	SUNWeridx	# RIO ethernet drivers (64bit)
+#package	SUNWged		# gigabit driver
+#package	SUNWgedx	# gigabit driver (64bit)
+#package	SUNWkvmx	# core software (64bit)
+#package	SUNWlmsx	# libm (64bit)
+#package	SUNWlocx	# localization utils (64bit)
+#package	SUNWluxop	# network array fw, utils
+#package	SUNWluxox	# network array fw, utils (64bit)
+#package	SUNWmdx		# solaris volume manager (64bit)
+#package	SUNWnfscx	# nfs client (64bit)
+#package	SUNWnfssx	# nfs server (64bit)
+#package	SUNWpiclx	# PICL libs (64bit)
+#package	SUNWqfed	# quad FE driver
+#package	SUNWqfedx	# quad FE driver (64bit)
+#package	SUNWrmodu	# realmode modules
+#package	SUNWses		# SCSI enclosure driver
+#package	SUNWsesx	# SCSI enclosure driver (64bit)
+#package	SUNWssad	# pln,soc,ssd kernerl drivers
+#package	SUNWssadx	# pln,soc,ssd kernerl drivers (64bit)
+#package	SUNWudfrx	# universal disk format 1.50 (64bit)
+#package	SUNWxwdvx	# X device drivers (64bit)
+#package	SUNWxwmox	# X kernel modules (64bit)
+#

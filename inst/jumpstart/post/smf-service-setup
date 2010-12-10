@@ -1,0 +1,15 @@
+#!/bin/sh
+
+osrev=`echo ${ver} |awk -F'.' '{print $2}'`
+
+# enable and disable SMF services for solaris 10 and up
+if [ ${osrev} -gt 9 ] ; then
+  for SERVICE in ${enable_services} ; do
+    svcadm enable ${SERVICE}
+  done
+
+  for SERVICE in ${disable_services} ; do 
+    svcadm disable ${SERVICE}
+  done
+fi
+

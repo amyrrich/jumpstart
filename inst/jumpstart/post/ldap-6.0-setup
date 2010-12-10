@@ -1,0 +1,15 @@
+##
+#
+
+## Scripts to install the initial ldap 6.0 server 
+
+if [ -z "$B" ]; then
+  B="/"
+fi
+
+if [ -f $B/local/home/ldapsrv/S99ldapsrv ]; then
+   cp $B/local/home/ldapsrv/S99ldapsrv $B/etc/rc3.d/S99ldapsrv
+else
+   echo "LDAP 6.0 server setup script not found."
+fi
+

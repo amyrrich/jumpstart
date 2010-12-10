@@ -1,0 +1,91 @@
+#!/bin/sh
+##
+#
+
+pkginstall() {
+  # Install packages in $1
+  # Use $2 as the list of packages.
+  # Use $3 as the admin file
+  # If $4 is anything, use it as the base directory for the package install.
+
+  # Requires patchinstall function.
+  # Requires pressret function.
+
+  # In case we want to re-arange these later.
+  pkgdir="$1"
+  pkglistfile="$2"
+  adminfile="$3"
+  basedir="$4"
+
+  if [ ! -r "$adminfile" ]; then
+    echo "adminfile \"$adminfile\" not found/not readable."
+    echo "Aborting pkginstall"
+    exit 1
+  fi
+
+  if [ ! -r "$pkglistfile" ]; then
+    echo "extpkgs list file \"$pkglistfile\" not found/not readable." 
+    echo "Aborting pkginstall" 
+  else
+  
+    # Does the package directory to install from exist ?
+  
+    if [ -d "$pkgdir" -a \( ! -z "$pkgdir" \) ]; then
+  
+      # Check we have a base directory to do the isntallation under
+      # (this is usually /a or / or blank, in which case / is used)
+  
+      if [ -z "$basedir" ]; then
+        # assumption is basedir is /
+        basedir="/"
+      elif [ ! -d "$basedir" ]; then
+          echo "No such base directory: \"$basedir\"" 
+          echo "for package install. Skipping."
+      fi
+  
+      cd /
+  
+      # For each entry in the pkglistfile, once leading and trailing
+      # white space has been removed, run pkgadd with the appropriate
+      #  options
+      # -- use a package.resp file (response file) if one exists
+  
+      sed -e 's/^[ 	]*//;s/[ 	]*$//;s/^#.*$//' < $pkglistfile \
+        | while read pkgname; do
+            if [ ! -z "$pkgname" ]; then
+  
+              # Do we have a response file to use ?
+  
+              if [ -f $pkgdir/$pkgname.resp ]; then
+                 echo "Using response file $pkgname.resp for $pkgname."
+                 respfile=" -r $pkgdir/$pkgname.resp "
+              else
+                 respfile=""
+              fi
+  
+              # Is the package a directory or a package stream ?
+       
+              if [ -d "$pkgdir/$pkgname" ]; then
+                 echo "Adding $pkgname."
+                 pkgadd -d $pkgdir $respfile -n -a $adminfile -R \
+                           $basedir $pkgname
+              elif [ -f "$pkgdir/$pkgname" ]; then
+                 echo "Adding $pkgname."
+                 pkgadd -n -a $adminfile -d $pkgdir/$pkgname \
+                        -R $basedir all
+              else
+                 echo "Package \"$pkgname\" not found. Skipping."
+              fi
+  
+            fi
+          done
+          
+  
+    else
+      echo "Invalid package directory: \"$pkgdir\"" 
+      echo "for package install. Skipping." 
+    fi
+
+  fi  
+}
+

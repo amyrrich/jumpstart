@@ -1,0 +1,48 @@
+#!/sbin/sh
+
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/ucb:/usr/local/sbin:/usr/ccs/bin:/usr/proc/bin:/usr/openwin/bin:/usr/cluster/bin
+
+# don't want world writable files kicking around
+umask 022
+
+# press return function
+. $utildir/pressret
+# need uname information
+. $utildir/douname
+
+if [ "X${clusterid}" = 'X' ] || [ "X${clustername}" = 'X' ] || \
+   [ "X${primarynode}" = 'X' ] || [ "X${primaryip}" = 'X' ] || \
+   [ "X${clusternodelist}" = 'X' ] || [ "X${icif1}" = 'X' ] || \
+   [ "X${icif2}" = 'X' ] || [ "X${icsw1}" = 'X' ] || [ "X${icsw2}" = 'X' ]; then
+  pressret "ERROR: Some cluster variables are missing from the hostconf file. Not running sun-cluster-install."
+fi
+
+if [ "X`hostname`" = "X${primarynode}" ]; then
+  echo "This is the first cluster node"
+
+  tline=''
+  for node in ${clusternodelist}; do
+    tline="${tline},node=${node}"
+  done
+  tline="node=${primarynode}${tline}"
+
+  scinstall -ik \
+    -C ${clustername} \
+    -F \
+    -T ${tline},authtype=sys \
+    -A trtype=dlpi,name=${icif1} -A trtype=dlpi,name=${icif2} \
+    -B type=switch,name=${icsw1} -B type=switch,name=${icsw2} \
+    -m endpoint=:${icif1},endpoint=${icsw1}@${clusterid} \
+    -m endpoint=:${icif2},endpoint=${icsw2}@${clusterid}
+
+else 
+  echo "This is not the first node of the cluster.  If ${primarynode} is not"
+  echo "up and in the cluster, the scinstall command will fail."
+
+  scinstall -ik \
+    -C ${clustername} \
+    -N ${primarynode} \
+    -A trtype=dlpi,name=${icif1} -A trtype=dlpi,name=${icif2} \
+    -m endpoint=:${icif1},endpoint=${icsw1}@${clusterid} \
+    -m endpoint=:${icif2},endpoint=${icsw2}@${clusterid}
+fi

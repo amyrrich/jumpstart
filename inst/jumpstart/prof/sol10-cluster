@@ -1,0 +1,22 @@
+# partitioning based on 72gb disk.
+install_type    initial_install
+isa_bits	64
+system_type     standalone
+partitioning    explicit
+
+filesys         c0t0d0s0 8192 /
+filesys         c0t1d0s0 8192 /spare/root
+filesys         c0t0d0s1 8192 swap
+filesys         c0t1d0s1 8192 /spare/swap
+filesys         c0t0d0s3 8192 /var
+filesys         c0t1d0s3 8192 /spare/var
+filesys         c0t0d0s5 8192 /lu/root
+filesys         c0t1d0s5 8192 /spare/lu/root
+filesys         c0t0d0s6 8192 /lu/var
+filesys         c0t1d0s6 8192 /spare/lu/var
+filesys         c0t0d0s7 1024 /spare/md1
+filesys         c0t1d0s7 1024 /spare/md2
+filesys         c0t2d0s0 2048 /globaldevices
+filesys         c0t3d0s0 2048 /spare/globaldevices
+filesys         c0t1d0s4 free /local
+filesys         c0t2d0s4 free /spare/local

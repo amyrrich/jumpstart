@@ -1,0 +1,6 @@
+#
+# For SPARC only
+#
+package SUNWfruid       add     # prtfru cmd, lib
+package SUNWfruip       add     # prtfru data module
+

@@ -1,0 +1,42 @@
+##############################################################################
+# X Window System
+#
+package		SUNWdtcor	add	# CDE anchor
+package         SUNWdtbax       add     # CDE libraries
+package		SUNWctpls	add	# services for Complex Text Layout
+package		SUNWmfrun	add	# motif runtime kit
+package		SUNWxwdv	add	# X kernel drivers
+package		SUNWxwice	add	# X interclient exchange libs
+package         SUNWxwicx       add     # 64 bit X interclient exchange libs
+package		SUNWxwmod	add	# X kernel modules
+package         SUNWxwfnt       add     # X required fonts
+package		SUNWxwcft	add	# X common fonts
+package		SUNWxwfnt	add	# additional fonts
+package		SUNWxwcsl	add	# type1 fonts
+package		SUNWxwdvx	add	# X kernel drivers (64bit)
+package		SUNWxwicx	add	# X interclient exchange libs (64bit)
+package		SUNWxwrtl	add	# X runtime lib links
+package		SUNWxwman	add	# X man pages
+package		SUNWxwmox	add	# X kernel modules (64bit)
+package		SUNWxwplt	add	# X sw (incl. xauth)
+package		SUNWxwplx	add	# X sw (64bit)
+package		SUNWxwpsr	add	# sun4u optimized X modules
+package		SUNWxwrtx	add	# X runtime lib links (64bit)
+package		SUNWxwslb	add	# X static libs
+package		SUNWxwslx	add	# X static libs (64bit)
+#
+# X Window System bits for desktops
+#
+package		SUNWxwopt	add	# X optional software
+package		SUNWxwsvr	add	# X screen saver
+package		SUNWm64		add	# M64 graphics driver
+package		SUNWm64x	add	# M64 graphics driver (64bit)
+package		SUNWm64w	add	# M64 graphics
+package		SUNWm64cf	add	# M64 graphics config util
+#
+# X Window System development bits (headers, etc)
+#
+package		SUNWxwhl	add	# X headers
+package		SUNWxwinc	add	# X include files
+#
+#

@@ -1,0 +1,13 @@
+##
+#
+
+# string utilities
+# pir
+
+slashescape() {
+  # escape out any / in $1 with \/
+
+  echo "$1" | sed 's:/:\\/:g'
+
+}
+

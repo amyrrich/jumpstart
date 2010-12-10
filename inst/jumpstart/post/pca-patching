@@ -1,0 +1,73 @@
+#/bin/sh
+#
+# This script uses the existing patching tools to set up live upgrade and
+# patch a box before putting it on the public network.  It does so by adding
+# a false /etc/hosts entry for patchserver.my.domain which uses the 
+# jumpnet address instead of the public address.
+#
+# This script must be run after rootfiles, extpkgs, and disksuite setup
+# scripts (if applicable), but before cfengine runs because it requires wget,
+# copied files, and modifies the boot device, but cfengine will wipe out the
+# /etc/hosts entry when it runs.  This script also requires that
+# solaris-patching is listed in the rootfiles section of the hostconf.
+
+PATCHDIR=/local/patches
+BINDIR=/usr/local/sbin
+ETCDIR=/etc
+
+# If we have a default zone, boot it
+if [ -f /usr/sbin/zoneadm ]; then
+  zoneadm list -cv 
+  DEF=`/usr/sbin/zoneadm -z default list -v | awk '/default/ {print $3}'`
+  if [ "X${DEF}" != 'Xrunning' ]; then
+    zoneadm -z default boot
+    sleep 120
+    zoneadm list -cv
+  fi
+fi
+
+# copy the pca binary and config file into place
+
+mkdir -p ${BINDIR}
+
+if [ -f ${PATCHDIR}/pca ] && [ -d ${BINDIR} ]; then
+  mv ${PATCHDIR}/pca ${BINDIR}
+else 
+  echo "Can not move ${PATCHDIR}/pca to ${BINDIR}"
+  exit 1
+fi
+
+if [ -f ${PATCHDIR}/pca.conf ] && [ -d ${ETCDIR} ]; then
+  mv ${PATCHDIR}/pca.conf ${ETCDIR}
+else 
+  echo "Can not move ${PATCHDIR}/pca.conf to ${ETCDIR}"
+  exit 1
+fi
+
+# add the temporary entry for patchserver.my.domain
+
+echo "192.168.1.199  patchserver.my.domain" >> ${ETCDIR}/inet/hosts
+
+# run the patching script
+
+if [ -x ${PATCHDIR}/scripts/patch_this_box.sh ]; then
+  ${PATCHDIR}/scripts/patch_this_box.sh  2>&1  | \
+    tee -a /var/sadm/install_data/patch.log
+
+else
+  echo "Cannot execute ${PATCHDIR}/scripts/patch_this_box.sh"
+  exit 1
+fi
+
+# remove the os dir for the patching stuff since we copied over the configs
+# for all os/hardware types during jumpstart
+
+rm -rf /local/patches/os
+
+# reboot off of the new BE
+# we must run the lu kill script by hand and then reboot since init 6 will not
+# interrupt the boot process.
+
+/etc/rc0.d/K62lu stop
+sleep 60
+sync; sync; sync; reboot

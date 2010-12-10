@@ -1,0 +1,30 @@
+# extra packages needed for sun cluster
+
+# xml
+package SUNWlxml 	add
+package SUNWlxmlx	add
+
+# resource pools
+package SUNWpool	add
+package SUNWpoolx	add
+
+# apache web server, needed for sunplex mgr
+package SUNWapchu       add 
+package SUNWapchr       add 
+
+# Sun r commands
+package SUNWrcmdr	add
+package SUNWrcmds	add
+
+# Needed for the Directory and Admin servers
+package SUNWgssc        add
+package SUNWgss         add
+package SUNWgssx        add
+package SUNWnisu        add
+
+# Fair share scheduler
+package SUNWfss         add
+package SUNWfssx        add
+
+# sparcstorage array utility
+package SUNWssaop	add

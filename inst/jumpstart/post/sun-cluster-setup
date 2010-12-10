@@ -1,0 +1,93 @@
+#!/sbin/sh
+
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/ucb:/usr/local/sbin:/usr/ccs/bin:/usr/proc/bin:/usr/openwin/bin:/usr/cluster/bin
+
+# don't want world writable files kicking around
+umask 022
+
+# press return function
+. $utildir/pressret
+# need uname information
+. $utildir/douname
+
+if [ "X${clusterid}" = 'X' ] || [ "X${clustername}" = 'X' ] || \
+   [ "X${primarynode}" = 'X' ] || [ "X${primaryip}" = 'X' ] || \
+   [ "X${clusternodelist}" = 'X' ] || [ "X${icif1}" = 'X' ] || \
+   [ "X${icif2}" = 'X' ] || [ "X${icsw1}" = 'X' ] || [ "X${icsw2}" = 'X' ]; then
+  pressret "ERROR: Some cluster variables are missing from the hostconf file. Not running sun-cluster-install."
+fi
+
+# remove ipfilter, since the cluster can't deal with it
+echo "removing ipfilter and pfil"
+pkgrm -R$B -M -n -a ${SI_CONFIG_DIR}/files/noask_pkgadd ipfx ipf pfil \
+        2>&1 | sed '/^$/d'
+
+echo "removing services in /etc/rc[23].d"
+for ser in S89stunnel S74xntpd.cluster;  do
+  if [ -f ${B}/etc/rc2.d/${ser} ]; then
+    echo "disabling rc2.d/${ser}"
+    mv -f ${B}/etc/rc2.d/${ser} ${B}/etc/rc2.d/no.${ser}
+  elif [ -f ${B}/etc/rc3.d/${ser} ]; then
+    echo "disabling rc3.d/${ser}"
+    mv -f ${B}/etc/rc3.d/${ser} ${B}/etc/rc3.d/no.${ser}
+  fi
+done
+
+# modify the number of metasets and disk devices in /kernel/drv/md.conf
+mdconf="$B/kernel/drv/md.conf"
+
+# maximum number of metadevices per diskset
+nmd=600
+# maximum number of disksets
+mdnsets=4
+
+if [ -f ${mdconf} ]; then
+  echo "Modifying the number of metasets and SVM devices in ${mdconf}"
+ 
+  sed "s/^name=\"md\" parent=\"pseudo\".*/name=\"md\" parent=\"pseudo\" nmd=${nmd} md_nsets=${mdnsets}\;/" \
+        < ${mdconf} > ${mdconf}.$$
+
+  cp ${mdconf}.$$ ${mdconf}
+
+  rm -f ${mdconf}.$$
+  chmod a+r ${mdconf}
+fi
+
+# if this is the primary node, add access for all other nodes in /.rhosts
+if [ "X`hostname`" = "X${primarynode}" ]; then
+  for node in ${clusternodelist}; do
+    echo "${node}" >> $B/.rhosts
+  done
+else
+  # make sure secondary nodes know what the primary's IP is
+  echo "${primaryip} ${primarynode}" >> ${B}/etc/hosts
+fi
+
+inetdconf="$B/etc/inet/inetd.conf"
+
+# enable  METAD, METAMHD, METAMEDD, and RSHD
+if [ -f ${inetdconf} ]; then
+  cp ${inetdconf} ${inetdconf}.$$
+  sed -e "s/^#100229/100229/" -e "s/^#100230/100230/" -e "s/^#100422/100422/" \
+      -e "s/^#shell.*tcp	.*\/usr\/sbin\/in.rshd.*$/shell	stream	tcp	nowait	root	\/usr\/sbin\/in.rshd	in.rshd/" \
+    < ${inetdconf}.$$ > ${inetdconf}
+  rm -f ${inetdconf}.$$
+fi
+
+# copy some kernel tuning stuff into /etc/system
+
+cat <<EOF >> $B/etc/system
+
+* Beginning of HA-IMAP customizations
+set halt_on_panic=1
+set maxusers=4096
+set tcp:tcp_conn_hash_size=262144
+set rlim_fd_cur=4096
+set maxphys=8388608
+set noexec_user_stack=1
+* End of HA-IMAP customizations
+
+EOF
+
+echo "Reconfiguration reboot for cluster setup changes to take effect..."
+reboot -- -r

@@ -1,0 +1,12 @@
+##
+#
+
+mntpoint=/mnt
+
+echo "Mounting /inst from jumpstart server on $mntpoint"
+mount $jumpstartip:/inst $mntpoint
+
+if [ "$?" != "0" ]; then
+  pressret "jumpstart server /inst MOUNT FAILED." \
+           "Press return to continue or restart:\c"
+fi

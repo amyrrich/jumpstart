@@ -1,0 +1,25 @@
+#
+# setup SAN stuff after install
+
+platform=`/bin/uname -i`
+
+echo "editing /kernel/drv/scsi_vhci.conf"
+sed -e 's/^mpxio-disable="yes"/mpxio-disable="no"/' \
+    -e 's/^auto-failback="disable"/auto-failback="enable"/' \
+    -e 's/^load-balance="round-robin"/load-balance="none"/' \
+    < /kernel/drv/scsi_vhci.conf > /kernel/drv/scsi_vhci.conf.$$
+mv /kernel/drv/scsi_vhci.conf.$$ /kernel/drv/scsi_vhci.conf
+chown root:sys /kernel/drv/scsi_vhci.conf
+chmod 644 /kernel/drv/scsi_vhci.conf
+
+echo "editing /kernel/drv/qlc.conf"
+
+if [ "X${platform}" = 'XSUNW,Sun-Fire-280R' ]; then
+  echo "This is a 280R, turning off mpxio for internal FCAL"
+  echo 'name="qlc" parent="/pci@8,600000" unit-address="4" mpxio-disable="yes";' >> /kernel/drv/qlc.conf
+elif [ "X${platform}" = 'XSUNW,Sun-Fire-480R' ]; then
+  echo "This is a 480R, turning off mpxio for nternal FCAL"
+  echo 'name="qlc" parent="/pci@9,600000" unit-address="2" mpxio-disable="yes";' >> /kernel/drv/qlc.conf
+fi
+
+reboot -- -r

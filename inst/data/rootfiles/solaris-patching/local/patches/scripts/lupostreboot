@@ -1,0 +1,114 @@
+#!/bin/sh
+
+PATH=/usr/sbin:/usr/bin:/bin
+export PATH
+
+NEWVAR=`df -k | grep '/var' | grep -v '/var/' | awk -F" " '{print $1}'`
+OLDVAR=(REPLACEMESTUB)
+PLATFORM=`uname -m`
+MNTDIR='/local/patches/patchmnt'
+
+svm_mirror_dev () {
+  # This routine is part of the jumpstart infrastructure and lives under svn
+  # control at inst/jumpstart/post/svm_mirror_dev.  Please make any changes 
+  # there and copy them here
+
+  # This routine corrects the listing of the boot devices in the eeprom
+
+  # a counter variable to tell what half of the mirror we're on
+  mirrornum=0
+
+  # determine what the root mirror is from df
+  rootmirror=`/bin/df -k / | awk '/^\/dev/ {print $1}'`
+  # find both halves of the mirror with metastat
+  rootdevs=`/sbin/metastat -p ${rootmirror} | awk '/c[0-9]*t[0-9]*/ {print $4}'`
+
+  for dev in ${rootdevs}; do
+
+    # get the device path of the mirror disk and chop of the leading goop
+    mdev=`/bin/ls -l /dev/dsk/${dev} | awk '{print $11}' | sed -n 's/..\/..\/devices//p'`
+
+    # now we need to change sd, ssd, or dad to disk (scsi, fibre, or ide)
+    # test for standard sd device
+    if [ "X`echo ${mdev} | grep '/sd@'`" = "X${mdev}" ]; then
+      mirror=`echo ${mdev} | sed -n 's/sd@/disk@/p'`
+    elif [ "X`echo ${mdev} | grep '/ssd@'`" = "X${mdev}" ]; then
+      mirror=`echo ${mdev} | sed -n 's/ssd@/disk@/p'`
+    elif [ "X`echo ${mdev} | grep '/dad@'`" = "X${mdev}" ]; then
+      mirror=`echo $mdev | sed -n 's/dad@/disk@/p'`
+    else
+      echo "No valid disk type (ssd, sd, dad) found."
+    fi
+
+    # we only handle a mirror with two halves
+    if [ "X${mirrornum}" = "X0" ]; then
+      mirror0=${mirror}
+    else
+      mirror1=${mirror}
+    fi
+
+    mirrornum=`expr ${mirrornum} + 1`
+  done
+
+  # set up nvramrc and a devalias if we have a valid mirror
+  if [ "X${mirror0}" != "X" ] && [ "X${mirror1}" != "X" ] ; then
+    echo "setting up nvramrc and devaliases for mirror0 and mirror1"
+    eeprom 'use-nvramrc?=true'
+    echo "saving old nvramrc settings"
+    eeprom nvramrc | \
+      grep -v 'data not available' | grep -v 'devalias mirror' |grep -v "^$" | \
+      sed 's/nvramrc=//g' > /tmp/nvramrc.$$
+    echo "devalias mirror0 ${mirror0}" >>  /tmp/nvramrc.$$
+    echo "devalias mirror1 ${mirror1}" >>  /tmp/nvramrc.$$
+
+    eeprom nvramrc="`cat /tmp/nvramrc.$$`"
+    rm /tmp/nvramrc.$$
+
+    # set our new boot path
+    echo "setting boot-device to \"mirror0 mirror1\""
+    eeprom boot-device="mirror0 mirror1"
+  else
+    echo "Can not find mirror device name, not changing eeprom"
+  fi
+}
+
+case "$1" in
+
+'start')
+  if [ "X${OLDVAR}" != "X${NEWVAR}" ]; then
+    if [ "X${PLATFORM}" != 'Xi86pc' ]; then
+      svm_mirror_dev
+    fi
+    echo "Copying ipf log and cron log from the old lu environment."
+    mount ${OLDVAR} ${MNTDIR}
+    for FILE in /var/log/ipf /var/cron/log /var/sadm/install_data/patch.log; do
+      if [ -f ${FILE} ]; then
+        cp ${FILE} ${FILE}.lu
+      fi
+    done
+
+    if [ -f ${MNTDIR}/log/ipf ]; then
+      cp ${MNTDIR}/log/ipf /var/log/ipf
+    fi
+    if [ -f ${MNTDIR}/cron/log ]; then
+      cp ${MNTDIR}/cron/log /var/cron/log
+    fi
+    if [ -f ${MNTDIR}/var/sadm/install_data/patch.log ]; then
+      cp ${MNTDIR}/var/sadm/install_data/patch.log  /var/sadm/install_data/patch.log
+    fi
+    umount ${MNTDIR}
+    rm /etc/rc2.d/S45lupostreboot
+  fi
+;;
+
+'stop')
+  echo "This script just copies the old ipf and cron logs to /var after"
+  echo "an luactivate and updates the eeprom with the new root mirrors."
+;;
+
+*)
+  echo "usage: $0 { start | stop }"
+  ;;
+
+esac
+

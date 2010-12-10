@@ -1,0 +1,128 @@
+#!/bin/sh
+
+umask 022
+
+# press return function
+. $utildir/pressret
+
+osrev=`echo ${ver} |awk -F'.' '{print $2}'`
+
+# Set up extra mount points and filesystems
+
+echo "Making /inst"
+mkdir -p ${B}/inst
+
+if [ -x /sbin/zpool ]; then
+  rootzpool=`/sbin/zpool list -H| awk '{print $1}'`
+else
+  rootzpool=''
+fi
+
+if [ "X${rootzpool}" = "Xrpool" ] ; then
+  # We're booting off of a ZFS volume instead of UFS
+
+  # destroy the /export dataset, since we don't use it
+  zfs destroy -r rpool/export
+
+  # create some other datasets that we will use
+
+  zfs create -o mountpoint=/local -o compression=on rpool/local
+  zfs create -o mountpoint=/home -o compression=on rpool/home
+  zfs create -o mountpoint=/usr/local rpool/usrlocal
+
+  # Set up the zones area
+
+  zfs create -o canmount=noauto -o mountpoint=/zoneds rpool/ROOT/s10-RC/zoneds
+  zfs mount rpool/ROOT/s10-RC/zoneds
+  zfs create -o canmount=noauto -o mountpoint=/zoneds/default rpool/ROOT/s10-RC/zoneds/default
+  zfs mount rpool/ROOT/s10-RC/zoneds/default
+  chmod 700 /zoneds/default
+
+  # Set up a default zone that we'll later use for cloning to create new VMs
+  ZONEDROOT='/zoneds/default/root/'
+
+  zonecfg -z default -f ${B}/mnt/data/rootfiles/zones/zoneds/config/zonecfg.default
+  zoneadm -z default install
+  cp ${B}/mnt/data/rootfiles/zones/zoneds/config/sysidcfg.default ${B}/${ZONEDROOT}/etc/sysidcfg
+  chmod 400 ${B}${ZONEDROOT}/etc/sysidcfg
+  zoneadm -z default boot
+  sleep 120
+  zoneadm list -cv
+
+  # Populate mounts in the default zone so that /usr/local and /home are set up
+  mkdir -p ${ZONEDROOT}/usr/local ${ZONEDROOT}/home
+  zlogin default 'mkdir -p /local/usr/local /local/home /inst'
+  zlogin default 'echo "# /usr/local lofs (man lofs)" >> /etc/vfstab'
+  zlogin default 'echo "/local/usr/local	-	/usr/local	lofs	-	yes	-" >> /etc/vfstab && mount /usr/local'
+  zlogin default 'echo "# /home lofs (man lofs)" >> /etc/vfstab'
+  zlogin default 'echo "/local/home	-	/home	lofs	-	yes	-" >> /etc/vfstab && mount /home'
+
+  # Copy over the default and roothome directories from the jumpstart rootfiles
+  # into the default zone
+  for ROOTFILES in roothome defaults ; do
+    if [ -d /mnt/data/rootfiles/$ROOTFILES ]; then
+      echo "copying from $ROOTFILES into ${ZONEDROOT}"
+      cd  /mnt/data/rootfiles/$ROOTFILES
+      tar cFf - . | (cd ${ZONEDROOT}; tar xpf -)
+      cd /
+    fi
+  done
+  
+else
+  # We're booting off of a UFS partition
+  if [ -d ${B}/local ]; then
+    echo "Making /local/usr/local"
+    mkdir -p ${B}/local/usr/local ${B}/usr/local && \
+      echo "# /usr/local lofs (man lofs)" >> ${B}/etc/vfstab && \
+      echo "/local/usr/local	-	/usr/local	lofs	-	yes	-" >> ${B}/etc/vfstab && \
+      mount ${B}/usr/local || \
+      echo "Can not create new /usr/local/filesystem"
+
+
+    if [ "X${nfsHome}" = "X" ]; then
+
+      if [ -d ${B}/home ]; then
+        echo "Removing old /home"
+        umount ${B}/home
+        rmdir ${B}/home
+      fi
+
+      echo "Creating new /home"
+      mkdir -p ${B}/local/home ${B}/home && \
+        echo "# /home lofs (man lofs)" >> ${B}/etc/vfstab && \
+        echo "/local/home	-	/home	lofs	-	yes	-" >> ${B}/etc/vfstab && \
+        mount ${B}/home || \
+        echo "Can not create new /home filesystem"
+
+
+      if [ -f ${B}/etc/rc2.d/S74autofs ]; then
+        echo "disabling rc2.d/S74autofs"
+        mv -f ${B}/etc/rc2.d/S74autofs ${B}/etc/rc2.d/no.S74autofs
+      fi
+    else
+      echo "NFS home directories" 
+    fi
+  else
+    pressret "ERROR:  No /local filesystem, not creating /usr/local or /home."
+  fi
+fi
+
+echo "Rebooting to correctly mount local filesystems"
+##############################################################################
+# hardware specific configuration
+##############################################################################
+
+if [ ${arch} != 'i86pc' ] ; then
+  # make sure sparcs use unique mac addresses for each interface
+  /usr/sbin/eeprom 'local-mac-address?=true'
+
+  # turn on verbose booting for sparcs running solaris 10 and up
+  if [ ${osrev} -gt 9 ] ; then
+    echo "setting smf to be verbose"
+    /usr/sbin/eeprom 'boot-command=boot -m verbose'
+  fi
+
+  reboot
+else
+  reboot -- -m verbose
+fi

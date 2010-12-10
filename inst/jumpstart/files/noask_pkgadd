@@ -1,0 +1,14 @@
+# adminfile3
+# default basedir
+mail=
+#instance=overwrite
+instance=quit
+partial=nocheck
+runlevel=nocheck
+idepend=nocheck
+rdepend=nocheck
+space=ask
+setuid=nocheck
+conflict=nocheck
+action=nocheck
+basedir=default

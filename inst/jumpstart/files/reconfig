@@ -1,0 +1,25 @@
+
+
+# Reconfigure things on a machine after sys-unconfiging it.
+# Run all the scripts in the $rundir directory.
+
+# If the directory doesn't exist, or it hasn't been unconfigured, skip
+# everything.
+
+if [ ! \( -d "$rundir" -a -f /etc/.reconfigure \) ]; then
+  exit 1
+fi
+
+# Run the post install sub scripts listed in the config file
+echo "Running reconfigure scripts:"
+for script in $reconfiglist ; do
+  thisscript=$rundir/$script
+  if [ -r "$thisscript" ]; then
+    echo "RECONFIGURE SCRIPT: $script"
+    . $thisscript
+  else
+    echo "Script \"$thisscript\" not readable or does not exist. Skipping."
+  fi
+done
+
+rm -f /etc/.reconfigure

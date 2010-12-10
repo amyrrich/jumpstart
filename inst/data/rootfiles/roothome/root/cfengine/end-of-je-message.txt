@@ -1,0 +1,8 @@
+This machine has completed both the initial jumpstart process and 
+the initial cfengine process.
+
+If there were errors in the jumpstart process, the relevant logs
+are in /var/sadm.
+
+If there were errors in the initial cfengine, the relevant logs are 
+in /root/cfengine/logs.

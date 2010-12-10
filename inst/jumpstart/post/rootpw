@@ -1,0 +1,47 @@
+##
+#
+
+echo "setting root password"
+
+# set the root password
+PASSWD=cryptedPASS
+
+# create a temporary input file
+cp $B/etc/shadow $B/etc/shadow.orig
+nawk -F: '{ 
+	if ( $1 == "root" ) 
+	    printf"%s:%s:%s:%s:%s:%s:%s:%s:%s\n",$1,passwd,$3,$4,$5,$6,$7,$8,$9
+	else
+	    printf"%s:%s:%s:%s:%s:%s:%s:%s:%s\n",$1,$2,$3,$4,$5,$6,$7,$8,$9
+	}' passwd="$PASSWD" $B/etc/shadow.orig > $B/etc/shadow
+
+chmod 400 $B/etc/shadow
+chown root:sys $B/etc/shadow
+
+# remove the temporary file
+rm -f $B/etc/shadow.orig
+# set the flag so sysidroot won't prompt for the root password
+sed -e 's/0	# root/1	# root/' ${SI_SYS_STATE} > /tmp/state.$$
+mv /tmp/state.$$ ${SI_SYS_STATE}
+
+
+# change root's home directory
+HOME=/
+#echo "changing root's home directory to $HOME"
+
+# make the new home directory
+#mkdir $B/$HOME
+#chmod 0755 $B/$HOME
+
+# create a temporary input file
+cp $B/etc/passwd $B/etc/passwd.orig
+nawk -F: '{
+        if ( $1 == "root" )
+            printf"%s:%s:%s:%s:%s:%s:%s\n",$1,$2,$3,$4,$5,home,$7
+        else
+            printf"%s:%s:%s:%s:%s:%s:%s\n",$1,$2,$3,$4,$5,$6,$7
+        }' home="$HOME" $B/etc/passwd.orig > $B/etc/passwd
+
+# remove the temporary file
+rm -f $B/etc/passwd.orig
+

@@ -1,0 +1,17 @@
+system_locale=en_US
+security_policy=NONE
+timezone=US/Eastern
+timeserver=localhost
+name_service=DNS { domain_name=$DOMAIN
+                   name_server=nameserver.ips,nameserver.ips2
+                   search=my.domain }
+terminal=vt100
+nfs4_domain=my.domain
+root_password=$PASSWD
+network_interface=primary { hostname=$FQDN
+                            default_route=$DEFROUTE
+                            ip_address=$PUBADDR
+                            protocol_ipv6=no }
+network_interface=primary { hostname=$JNETFQDN
+                            ip_address=$JNETADDR
+                            protocol_ipv6=no }

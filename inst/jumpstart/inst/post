@@ -1,0 +1,49 @@
+#!/sbin/sh
+
+# the post install script.
+# this is mainly just a header script to run the list of little scripts that
+# are listed in the host config file.
+
+echo "=================================================================="
+echo "Post install script"
+echo "=================================================================="
+
+# define the base directory we are working with. This is jumpstart, so
+# the client stuff is under /a
+B=/a
+export B
+
+# define where the utility scripts are
+# this is also in the pre-install script
+utildir=${SI_CONFIG_DIR}/util
+
+# define where this machine is
+jumpstartip="`df -k $SI_CONFIG_DIR | awk -F: '/^File/ { next } { print $1 }'`"
+echo $jumpstartip > $B/etc/.jumpstartip
+chmod 444 $B/etc/.jumpstartip
+
+# bring in the press return procedure
+. $utildir/pressret
+
+# bring in the uname variables
+# requires pressret
+. $utildir/douname
+
+# bring in the config file variables
+# requires pressret
+. $utildir/gethostconf
+
+# Run the post install sub scripts listed inthe config file
+echo "Running post install scripts:"
+for script in $postscr ; do
+  thisscript=${SI_CONFIG_DIR}/post/$script
+  if [ -r "$thisscript" ]; then
+    echo "POST SCRIPT: $script"
+    . $thisscript
+  else
+    pressret "Script \"post/$script\"" \
+             "not readable or does not exist." \
+             "Skipping. Press return to continue."
+  fi
+done
+

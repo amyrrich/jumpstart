@@ -1,0 +1,153 @@
+#
+# The first part of this file contains the minimum OS clusters and packages
+# to be installed on all servers.  For additional packages (eg for desktops
+# or special servers), see the following sections.
+#
+##############################################################################
+# 
+# minimum required software for a standalone, non-networked system
+#
+cluster	SUNWCreq
+#
+# but we don't want these parts of SUNWCreq
+#
+cluster	SUNWCkrb5	delete	# Kerberos v5
+cluster	SUNWCnfss	delete	# nfs server
+cluster	SUNWCnis	delete	# nis
+cluster	SUNWCnsvc	delete	# remote network services/cmds
+cluster	SUNWCsndm	delete	# sendmail
+package	SUNWauda	delete	# audio applications
+#package	SUNWaudd	delete	# audio drivers
+package	SUNWatfsr	delete	# autoFS
+package	SUNWatfsu	delete	# autoFS
+package	SUNWdtcor	delete	# /usr/dt anchor
+package	SUNWftpr	delete	# FTP server and utils
+package	SUNWftpu	delete	# FTP server and utils
+#package	SUNWauddx	delete	# audio drivers (64bit)
+#
+# Base Additional software
+#
+cluster	SUNWCcpc	add	# cpu performance counter driver, utils
+cluster	SUNWCcpcx	add	# cpu performance counter driver, utils (64bit)
+cluster	SUNWCacc	add	# system accounting (sar)
+cluster	SUNWCadm	add	# system + network admin tools
+cluster	SUNWCvol	add	# volume mgmt
+cluster	SUNWCvolx	add	# volume mgmt (64bit)
+cluster	SUNWCfwutil	add	# freeware utils (patch, less, rpm)
+cluster	SUNWCfwshl	add	# freeware shells (bash, tcsh, zsh)
+cluster	SUNWCfwcmp	add	# freeware compression utils (bzip, gzip, zip, zlib)
+cluster	SUNWCfwcmpx	add	# freeware compression utils (64bit)
+cluster	SUNWCced	add	# Sun Gigaswift Ethernet Adapter sw
+cluster	SUNWCcedx	add	# Sun GigaSwift Ethernet Adapter sw (64-bit)
+cluster	SUNWCfct	add	# fiber channel transport
+cluster	SUNWCfctx	add	# fiber channel transport (64bit)
+cluster	SUNWCirf	add	# X11 ISO-8859-x required fonts
+cluster	SUNWCiof	add	# X11 ISO-8859-x optional fonts
+cluster	SUNWCide	add	# PCI disk drivers (IDE)
+cluster	SUNWCidex	add	# PCI disk drivers (64bit)
+cluster	SUNWClu		add	# Solaris Live Upgrade Software
+#
+package	SUNWbtool	add	# /usr/ccs sw devel utils
+package	SUNWbtoox	add	# /usr/ccs sw devel utils (64bit)
+package	SUNWcpp		add	# cpp
+package	SUNWlibm	add	# forte developer bundled libm
+package	SUNWlmx		add	# forte developer bundled misc libm files (64bit)
+package	SUNWarc		add	# ar format libs
+package	SUNWarcx	add	# ar format libs (64bit)
+package	SUNWesxu	add	# extended system utils (64bit)
+package	SUNWhmd		add	# sunswift adapter drivers
+package	SUNWhmdx	add	# sunswift adapter drivers (64bit)
+package	SUNWipc		add	# interprocess communication
+package	SUNWlibC	add	# sun workshop bundled libC
+package	SUNWlibCx	add	# sun workshop bundled libC (64bit)
+package	SUNWlibCf	add	# sun workshop bundled libC (cfront ver)
+package	SUNWpd		add	# PCI bus drivers
+package	SUNWpdx		add	# PCI bus drivers (64bit)
+package	SUNWsprot	add	# solaris bundled tools (make)
+package	SUNWsprox	add	# sun workshop bundled make library (64bit)
+package	SUNWtoo		add	# programming tools (ldd, truss)
+package	SUNWtoox	add	# programming tools (64bit)
+package	SUNWusx		add	# ultrasparc cpu device driver (64bit)
+package	SUNWter		add	# terminfo data
+package	SUNWhea		add	# header files
+package	SUNWsutl	add	# static utils
+package	SUNWman		add	# man pages
+package	SUNWdoc		add	# doc utils (*roff)
+package	SUNWtnetc	add	# telnet cmd
+package	SUNWrcmdc	add	# r* cmds (including snoop, dammit)
+package	SUNWifp		add	# fc-al qlogic fc family driver
+package	SUNWifpx	add	# fc-al qlogic fc family driver (64bit)
+package	SUNWpl5m	add	# perl 5.6.1 man pages
+package	SUNWpl5p	add	# perl 5.6.1 POD docs
+package	SUNWinst	add	# Sun install sw
+package	SUNWxcu4	add	# XCU4 utils
+package	SUNWdmfex	add	# dmfe ethernet driver (64bit)
+package	SUNWmdb		add	# modular debugger (mdb)
+package	SUNWmdbx	add	# modular debugger (mdb) (64bit)
+package	SUNWluxop	add	# enterprise network array fw, utils
+package	SUNWluxox	add	# enterprise network array fw, utils (64bit)
+package	SUNWqlc		add	# qlogic FC driver
+package	SUNWqlcx	add	# qlogic FC driver (64bit)
+package	SUNWfruid	add	# prtfru cmd, lib
+package	SUNWfruip	add	# prtfru data module
+package	SUNWvld		add	# Vlan util
+package	SUNWvldx	add	# Vlan util (64bit)
+package SUNWtcpd	add	# TCP wrapper utilities
+
+### Begin cluster stuff ###
+# xml
+package SUNWlxml 	add
+package SUNWlxmlx	add
+
+# resource pools
+package SUNWpool	add
+package SUNWpoolx	add
+
+# java
+package SUNWdtcor 	add
+package SUNWctpls	add
+package SUNWmfrun 	add
+package SUNWxwrtl 	add
+package SUNWxwice 	add
+package SUNWxwfnt	add
+package SUNWxwplt	add
+package SUNWj3rt 	add
+package SUNWj3man 	add
+package SUNWj3cfg 	add
+package SUNWj3rtx 	add
+package SUNWj3irt	add
+
+# snmp
+package SUNWmibii 	add
+package SUNWsasnm 	add
+package SUNWsasnx	add
+package SUNWsadmi 	add
+package SUNWsacom  	add # admi missing jes-64bit.sol9
+
+# x
+package SUNWmfrun	add
+package SUNWxwdv	add
+package SUNWxwice	add
+package SUNWxwmod	add
+package SUNWxwcft	add
+package SUNWxwcsl	add
+package SUNWxwdvx	add
+package SUNWcxfnt  	add # typo of w instead of x in jes-64bit.sol9
+package SUNWxwicx  	add # typo of s instead of x in jes-64bit.sol9
+package SUNWxwrtl	add
+package SUNWxwman	add
+package SUNWxwmox	add
+package SUNWxwplt	add
+package SUNWxwplx	add
+package SUNWxwpsr	add
+package SUNWxwrtx	add
+package SUNWxwslb	add
+package SUNWxwslx	add
+
+# needed for sunplex mgr
+package SUNWapchu       add 
+package SUNWapchr       add 
+
+#needed for live upgrade
+package SUNWlur         add 
+package SUNWluu         add 

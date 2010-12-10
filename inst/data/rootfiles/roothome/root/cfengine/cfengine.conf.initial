@@ -1,0 +1,123 @@
+#####################################################################
+# This is the second initial CFengine config file that should be run on
+# all machines immidiately after setup.  It 
+# sets up sudoers, sets up DNS on the solaris boxes, and does other
+# important things in combination with the first config file.
+# 
+# This file will always live on the machine that is running the CFD
+# for the rest of the university, along with the basic files that
+# need to be copied with it.
+# 
+# domain = ( ? ) should be set with the domain of the machine it is
+# being run on.
+#
+#####################################################################
+
+control:
+   solaris|solarisx86::
+	domain = ( ? )
+        access = ( root )
+        netmask = ( 255.255.255.0 ) 
+        timezone = ( EST )  
+        nfstype = ( nfs )
+        sysadmin = ( root@my.domain )
+        editfilesize = ( 0 )
+
+	DefaultCopyType = ( checksum )
+	ExpireAfter = ( 60 )
+
+	CFMaster = ( cfd-jump.my.domain )
+
+	## Copy source & destinations for configs and scripts
+	confdest = ( /var/cfengine/inputs/ )
+	confsource = ( /local/cfengine/cf2/ )
+	scriptdest = ( /usr/local/sbin/ )
+	scriptsource = ( /local/cfengine/scripts/ )
+
+        actionsequence = ( checktimezone
+                              netconfig
+                              resolve
+			      editfiles
+			      files
+                              copy
+                              files
+			      shellcommands
+                         )
+
+copy:
+
+    solaris|solarisx86::
+
+	## These are the configs that the scripts run off of.
+	$(confsource)update.conf
+		dest=$(confdest)update.conf server=$(CFMaster)
+
+        $(confsource)cf2-grabconfig.conf
+                dest=$(confdest)cf2-grabconfig.conf server=$(CFMaster)
+
+        ## These are the scripts that run cfengine out of cron.
+        $(scriptsource)cf.grabconfig
+                dest=$(scriptdest)cf.grabconfig server=$(CFMaster)
+
+        ## These are the scripts that run cfengine out of cron.
+        $(scriptsource)cf.force
+                dest=$(scriptdest)cf.force server=$(CFMaster)
+
+        ## Other things
+        /local/cfengine/base/usr/local/bin/cf-output_cleaner.pl
+		dest=/usr/local/bin/cf-output_cleaner.pl server=$(CFMaster)
+
+        /local/cfengine/base/usr/local/bin/mailif
+                dest=/usr/local/bin/mailif server=$(CFMaster)
+
+	/local/cfengine/base/usr/local/nagios/etc/nrpe.cfg
+		dest=/usr/local/nagios/etc/nrpe.cfg server=$(CFMaster) o=0 g=1 mode=0444
+
+    sunos_5_8::
+        ## Clean up after tripwire.
+	/var/sadm/install/databases/
+		dest=/var/secure/databases/ recurse=inf
+
+editfiles:
+
+    solaris|solarisx86::
+      #### This line allows *all* cfengined machines to talk to the
+      #### cfdaemon.  It should therefore be on all machines.
+      { /etc/services
+        AppendIfNoSuchLine "cfengine        5308/tcp"
+      }
+
+      { /etc/nsswitch.conf
+        LocateLineMatching "^hosts:.*"
+        AppendToLineIfNotContains " dns"
+      } 
+
+    sunos_5_8::
+      #### Fix the stupid tripwire problem
+      { /usr/local/sbin/tw.cron
+        BeginGroupIfNoLineContaining "mailx"
+        LocateLineMatching "cat"
+        IncrementPointer "1"
+        ReplaceLineWith ') | /bin/mailx -s "File integrity report -- `/bin/hostname`" tripwire@my.domain'
+        EndGroup
+      }
+
+files:
+
+     /root/     mode=0700 o=root g=other action=touch r=0
+     /local/patches/ mode=0755 o=root g=other action=touch r=0
+     /local/patches/security/ mode=0755 o=root g=other action=touch r=0
+     /local/patches/os/ mode=0755 o=root g=other action=touch r=0
+     /local/patches/updates/ mode=0755 o=root g=other action=touch r=0
+     /etc/sudoers mode=0440 o=root g=root action=touch
+
+resolve:
+        
+                10.11.1.13
+                10.11.5.5
+
+shellcommands:
+    all::
+	"/usr/sbin/eeprom 'local-mac-address?=true'"
+    sunos_5_10::
+        "/usr/sbin/svcadm -v restart network/ipfilter"

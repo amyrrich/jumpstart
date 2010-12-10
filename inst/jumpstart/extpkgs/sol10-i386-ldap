@@ -1,0 +1,24 @@
+### Compilation tools -- see sol10-i386-compiler for latest versions
+#bison-2.3-owc1-sol10-i386
+#flex-2.5.4-owc2-sol10-i386
+#m4-1.4.10-owc1-sol10-i386
+#make-3.81-owc1-sol10-i386
+#patch-2.5.4-owc1-sol10-i386
+#
+### PERL modules (misc)
+PERLtimehires588-1.9719-owc1-sol10-i386
+PERLconfiggeneral588-2.44-owc1-sol10-i386
+#
+### PERL-ldap modules
+PERLnetssleay588-1.35-owc1-sol10-i386
+PERLiosocketssl588-1.30-owc1-sol10-i386
+PERLconvertasn1588-0.22-us1g-sol10-i386
+PERLldap588-0.39-owc1-sol10-i386
+#
+### LDAP related tools
+openldap-client-2.2.27-owc1-sol10-i386
+look-1.1-owc3-sol10-i386
+#
+### expect (not sure what needs this)
+PERLiotty588-1.08-owc1-sol10-i386
+PERLexpect588-1.21-owc1-sol10-i386

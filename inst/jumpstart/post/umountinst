@@ -1,0 +1,16 @@
+##
+#
+
+cd /
+
+mntpoint=/mnt
+
+echo "Umounting /inst from jumpstart server on $mntpoint"
+umount $mntpoint
+
+if [ "$?" != "0" ]; then
+  pressret "$mntpoint UMOUNT FAILED." \
+           "Press return to continue or restart:\c"
+fi
+
+init 6

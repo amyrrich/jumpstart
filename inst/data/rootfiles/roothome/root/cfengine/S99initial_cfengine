@@ -1,0 +1,107 @@
+#!/bin/sh
+
+#####################################################################
+## 
+## This script runs after the initial jumpstart of a machine, running
+## the first group of cfengine commands on a machine and setting up
+## the initial cron jobs.
+##
+## This script should only be run by hand under very weird 
+## circumstances, and root's cronjob should be checked after it is 
+## run by hand to make sure there are no duplicate entries.
+##
+## This script and the scripts it calls modify the following files:
+##
+##   # /etc/hosts
+##   # /etc/netmasks
+##   # /etc/defaultrouter
+##   # /etc/hostname.* files
+##   # root's crontab
+##
+#####################################################################
+
+case "$1" in
+   'start')
+       if [ ! -d "/mnt/jumpstart" ]; then 
+
+          # if [ "5.9" = `/bin/uname -r` ] ; then
+          #     ln -s /usr/sbin/dig /usr/local/bin/dig
+          # fi
+
+          # if [ "5.10" = `/bin/uname -r` ] ; then
+          #	ln -s /usr/sbin/dig /usr/local/bin/dig
+          # fi
+
+	  echo "Running network setup." 
+          /root/cfengine/scripts/clean_hosts.pl
+          rm /etc/dhcp.??*
+          echo `hostname` > /etc/nodename
+
+          # once all of the ethernet interfaces have been plumbed, make sure
+          # that they're all added to the pfil config file (if it exists)
+
+          PFIL='/etc/opt/pfil/iu.ap'
+          if [ -f ${PFIL} ]; then
+            IFACES=`ifconfig -a|sed -ne 's/\([a-z0-9]*\)[0-9]\{1,\}[:0-9]*: .*/\1/p'|egrep -v 'fcip|lo'|sort -u`
+            for IFACE in ${IFACES}; do
+              /usr/xpg4/bin/grep -q "	${IFACE}	" ${PFIL}
+              if [ $? -ne 0 ] ; then     
+                echo "Adding ${IFACE} interface to ${PFIL}"
+                echo "	${IFACE}	-1	0	pfil" >> ${PFIL}
+              fi
+            done
+          fi
+
+          if [ "5.8" = `/bin/uname -r` ] ; then
+               echo "Turning on ufslogging."
+               /root/cfengine/scripts/enable_ufslogging.pl 
+          fi
+
+          echo "Updating the motd."
+          /root/cfengine/scripts/patched_motd.pl
+
+	  echo "Fixing initial cfengine domain."
+          /root/cfengine/scripts/fix_domain.pl
+
+	  echo "Connecting to get the key..."
+	  /usr/local/sbin/cfagent --file /root/cfengine/get-ppkey-192.168.conf -v > /root/cfengine/logs/get-ppkey.192.168
+
+	  sleep 60
+
+          /usr/local/sbin/cfagent --file /root/cfengine/get-ppkey-192.168.conf -v > /root/cfengine/logs/get-ppkey.192.168-2
+
+	  sleep 3
+
+	  echo "Running first cfengine."
+	  /usr/local/sbin/cfagent --file /root/cfengine/cfengine.conf.initial -v > /root/cfengine/logs/cfengine.conf.initial.1
+
+	  sleep 60
+
+	  /usr/local/sbin/cfagent --file /root/cfengine/cfengine.conf.initial -v  > /root/cfengine/logs/cfengine.conf.initial.2
+	  echo "Done running first cfengine - logs in /root/cfengine/logs/"
+ 
+	  echo "Setting up a default 11 am cfengine in case something breaks."
+	  /root/cfengine/scripts/crontab-cfengine.pl
+                                             
+          echo "Sleeping for 60 seconds to allow cfengine to settle."
+          /bin/sleep 60
+
+ 	  echo "Copying the second cfengine script into /etc/rc3.d..."
+ 	  /bin/cp /root/cfengine/S99second_cfengine /etc/rc3.d/S99second_cfengine
+
+          echo "Deleting this script from /etc/rc3.d"
+          /bin/rm /etc/rc3.d/S99initial_cfengine
+
+          echo "Rebooting to turn on ufslogging and other things."
+          reboot
+       else 
+          echo "/mnt/jumpstart still exists, not running cfengine script."
+       fi
+       ;;
+
+	'stop')
+	  echo "Tried to stop /etc/rc3.d/S99initial_cfengine."
+	  echo "This script doesn't -stop-."
+          echo "So something broke."
+          ;;
+esac

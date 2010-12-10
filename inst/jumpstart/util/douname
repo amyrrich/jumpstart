@@ -1,0 +1,27 @@
+##
+# Set some variables so we don't call uname too many times.
+# REQUIRES the pressret function.
+
+set -- `uname -srmp`
+if [ $# -eq 4 -a ! -z "$4" ]; then
+  os="$1"
+  ver="$2"
+  arch="$3"
+  proc="$4"
+
+  if [ -x $B/usr/bin/isainfo ]; then
+    # 64 bit capable - what are we running ?
+    set -- `isainfo -kv`
+    case "$1" in
+
+      32-bit|64-bit)
+        bits="$1"
+      ;;
+    esac
+    
+  fi
+
+else
+  pressret "uname -srmp call failed, output: $*" \
+           "Press return to continue or restart:\c"
+fi

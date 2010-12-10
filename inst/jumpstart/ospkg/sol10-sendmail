@@ -1,0 +1,2 @@
+package SUNWsndmr       add     # sendmail root
+package SUNWsndmu       add     # sendmail user

@@ -1,0 +1,5 @@
+# If you change any entries, when you are done change them back and jdel
+# your config !
+#
+#arch sparc	inst/pre	=		inst/post
+any   -    	inst/pre	=		inst/post

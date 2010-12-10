@@ -1,0 +1,9 @@
+##
+# mount the install directory from the jumpstart server
+instdir="/tmp/inst"
+
+if [ ! -d $instdir ]; then
+  mkdir -m 755 $instdir
+fi
+
+mount 192.168.254.10:/inst $instdir

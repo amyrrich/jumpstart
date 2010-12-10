@@ -1,0 +1,9 @@
+system_locale=en_US
+security_policy=NONE
+timezone=US/Eastern
+timeserver=localhost
+name_service=NONE
+terminal=vt100
+network_interface=PRIMARY { dhcp protocol_ipv6=no }
+nfs4_domain=my.domain
+terminal=vt100

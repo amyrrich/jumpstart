@@ -1,0 +1,93 @@
+#
+# This file contains the minimum OS clusters and packages to be installed on
+# all servers.
+##############################################################################
+# 
+# minimum required software for a standalone, non-networked system
+#
+cluster	SUNWCreq
+#
+# Additional software clusters
+#
+cluster	SUNWCcpc	add	# cpu performance counter driver, utils
+cluster	SUNWCacc	add	# system accounting (sar)
+cluster	SUNWCadm	add	# system + network admin tools
+cluster	SUNWCvol	add	# volume mgmt
+cluster SUNWCfs         add     # font server software and X fonts
+cluster	SUNWCfwutil	add	# freeware utils (patch, less, rpm)
+cluster	SUNWCfwshl	add	# freeware shells (bash, tcsh, zsh)
+cluster	SUNWCfwcmp	add	# freeware compression utils (bzip, gzip, zip, zlib)
+cluster	SUNWCced	add	# Sun Gigaswift Ethernet Adapter sw
+cluster	SUNWCirf	add	# X11 ISO-8859-x required fonts
+cluster	SUNWCiof	add	# X11 ISO-8859-x optional fonts
+cluster SUNWCjv         add     # java
+cluster	SUNWClu		add	# Solaris Live Upgrade Software
+cluster SUNWCntp        add     # ntp time tools
+cluster SUNWCpmgr       add     # patch pro utilities
+cluster SUNWCpool       add     # resource pools
+cluster SUNWCptoo       add     # programming tools
+cluster SUNWCrcapu      add     # resource capping
+cluster SUNWCssh        add     # SSH
+cluster SUNWCvld        add     # VLAN tools
+cluster SUNWCxwrte      add     # X Window System software
+cluster SUNWCzone       add     # Zones
+
+#
+# but we don't want these parts of the above clusters
+#
+cluster SUNWCaudd       delete  # audio
+cluster SUNWCnis        delete  # nis
+cluster SUNWCnsvc       delete  # remote network services/cmds
+cluster SUNWCsndm       delete  # sendmail
+package SUNWatfsr       delete  # autoFS
+package SUNWatfsu       delete  # autoFS
+package SUNWftpr        delete  # FTP server and utils
+package SUNWftpu        delete  # FTP server and utils
+package SUNWxwfs        delete  # font server software
+package SUNWj3dmo       delete  # java demos
+package SUNWj5dmo       delete  # java demos
+package SUNWjhdem       delete  # java demos
+package SUNWjhdoc       delete  # java help docs
+
+#
+# additional software packages
+#
+package	SUNWarc		add	# ar format libs
+package SUNWarcr        add     # lint libraries
+package SUNWbind        add     # bind so we have dig
+package SUNWgssdh       add     # GSS Diffie-Hellman
+package	SUNWipc		add	# interprocess communication
+package	SUNWlibCf	add	# sun workshop bundled libC (cfront ver)
+package	SUNWtoo		add	# programming tools (ldd, truss)
+package	SUNWter		add	# terminfo data
+package	SUNWhea		add	# header files
+package	SUNWman		add	# man pages
+package	SUNWdoc		add	# doc utils (*roff)
+package	SUNWtnetc	add	# telnet cmd
+package	SUNWrcmdc	add	# r* cmds (including snoop, dammit)
+package SUNWrsg         add     # RPCSEC_GSS
+package SUNWspnego      add     # SPNEGO GSS-API Mechanism
+package	SUNWxcu4	add	# XCU4 utils
+package SUNWxcu6        add     # XCU6 utils
+package SUNWtcpd	add	# TCP wrapper utilities
+package SUNWast         add     # security admin utils
+package SUNWaudit       add     # Java BSM audit interface
+package SUNWbart        add     # Basic Audit Reporting Tool
+package SUNWfss         add     # Fair Share Scheduler
+package SUNWuiu8        add     # libiconv for Legato networker
+
+#
+# GNU Basics for everybody
+#
+package SUNWgccruntime	add	# libgcc
+package SUNWgcmn	add	# gnu common stuff
+package SUNWgtar	add	# gnu tar
+
+##############################################################################
+#
+# Extra X Window System packages
+#
+package		SUNWctpls	add
+package		SUNWmfrun	add	# motif runtime kit
+package         SUNWxwman       add     # X man pages
+package         SUNWxwslb       add     # X static libs

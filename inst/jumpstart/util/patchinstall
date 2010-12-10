@@ -1,0 +1,66 @@
+##
+#
+
+patchinstall() {
+  # Install the patches in the given directory.
+
+  # Requires pressret function.
+
+  patchdir="$1"
+
+  if [ "${B}" != "/" -a "${B}" != "" ]; then
+    patchinstbaseopt="-R ${B}"
+  else
+    patchinstbaseopt=""
+  fi
+
+  if [ -d "${patchdir}" -a \( ! -z "${patchdir}" \) ]; then
+
+    cd ${patchdir}
+
+    # if we already have a patch_order file (like from recommended patches)
+    # we should just use it
+    if [ -f patch_order ] ; then
+      patchlistfile="patch_order"
+    else
+      # otherwise, build a list of patches in the current directory
+      touch /tmp/patchlist.txt
+      if [ ! -f /tmp/patchlist.txt ]; then
+        pressret "Error creating patch list file /tmp/patchlist.txt" \
+                 "Cannot continue safely. Restart installation."
+      fi
+      ls -d1 *[0-9] > /tmp/patchlist.txt
+
+      # Patchadd and patchadd require the list file to be relative to the
+      # current directory (braindead) so build a relative path:
+      # (replace every path entry with .. and remove the preceeding /)
+      patchlistfile="`pwd | sed -e 's/[^/]\{1,\}/../g;s/^\///'`/tmp/patchlist.txt"
+    fi
+
+    # If we have patchadd (2.6 and later) then we should use it.
+    if [ -x ${B}/usr/sbin/patchadd ]; then
+      # patchadd doesn't do well with patch_order files under Solaris 10
+      # unless all patches can be applied.
+      # Use a for loop to apply each patch individually.
+
+      if [ "X${ver}" = 'X5.10' ]; then
+        for patch in `cat ${patchlistfile}`; do
+          ${B}/usr/sbin/patchadd -M . ${patchinstbaseopt} ${patch} < /dev/null
+        done
+      else
+        ${B}/usr/sbin/patchadd -M . ${patchinstbaseopt} ${patchlistfile} < /dev/null
+      fi
+
+    else
+      `head -1 /tmp/patchlist.txt`/installpatch -M . \
+               ${patchinstbaseopt} ${patchlistfile} < /dev/null
+    fi
+
+    rm -rf /tmp/patchlist.txt ${B}/tmp/install* /tmp/install*
+    
+  else
+    pressret "Invalid patch directory: \"$1\"" \
+             "for patch install. Skipping." "Press return to continue."
+  fi
+
+}

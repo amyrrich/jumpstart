@@ -1,0 +1,68 @@
+#!/bin/sh
+
+#####################################################################
+##
+## This is the second half of the manual run of the cfengine scripts 
+## for machines that do not have a secondary NIC.
+##
+## This set of scripts and the scripts they call modify the following 
+## files:
+##
+##   # /etc/hosts
+##   # /etc/netmasks
+##   # /etc/defaultrouter
+##   # /etc/hostname.* files
+##   # root's crontab
+##
+#####################################################################
+
+case "$1" in
+   'start')
+	if [ ! -d "/mnt/jumpstart" ]; then 
+	   /bin/rm /var/cfengine/cfengine*
+
+	   echo "Connecting to get ppkey..."
+           /usr/local/sbin/cfagent -v --file /root/cfengine/get-ppkey-10.11.conf > /root/cfengine/logs/get-ppkey.log
+
+	   echo "Running cf.force for the first time."
+	   /usr/local/sbin/cf.force
+	   echo "Done running cf.force for the first time."
+
+	   echo "60 second break to let cfengine finish processing..."
+	   sleep 60
+
+	   echo "Running cf.force for the second time."
+	   /usr/local/sbin/cf.force
+	   echo "Done running cf.force"
+
+           sleep 60
+
+	   echo "Cleaning up..."
+	   if [ -f /cfengine.conf.initial ]; then
+	      /bin/rm /cfengine.conf.initial
+	   fi
+
+           echo "Setting up a mailing to js-done-rt@my.domain"
+           /bin/cp /root/cfengine/S99done_jumpstart_mail /etc/rc3.d/S99done_jumpstart_mail
+
+	   echo "Setting up the audit scrub."
+	   /bin/cp /root/cfengine/S99audit_scrub /etc/rc3.d/S99audit_scrub
+
+           echo "Removing this script from /etc/rc3.d/..."
+           /bin/rm /etc/rc3.d/S99second_cfengine
+
+          echo "Final machine reboot to say I'm done."
+          reboot
+	else 
+	   echo "/mnt/jumpstart still exists, not running cfengine script."
+	fi
+	;;
+
+
+        'stop')
+          echo "Tried to stop /etc/rc3.d/S99manual_initial_cfengine_2."
+          echo "This script doesn't -stop-."
+          echo "So something broke."
+          ;;
+esac
+

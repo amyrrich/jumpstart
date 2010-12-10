@@ -1,0 +1,17 @@
+##
+#
+
+## Scripts to fix stuff in /etc/hosts, /etc/netmask, and plumb the other
+## ethernet interfaces, as well as to apply the first run of cfengine 
+## upon the poor, unsuspecting box.
+
+if [ -z "$B" ]; then
+  B="/"
+fi
+
+if [ -f $B/root/cfengine/S99initial_cfengine ]; then
+   cp $B/root/cfengine/S99initial_cfengine $B/etc/rc3.d/S99initial_cfengine
+else
+   echo "CFengine & hostcleanup script not found."
+fi
+

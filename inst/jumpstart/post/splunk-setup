@@ -1,0 +1,74 @@
+#!/bin/sh
+
+# This script assumes that the logging filesystems are going onto the mirrored
+# partitions c0t2d0s0 and c0t3d0s0 and that they are already correctly
+# formatted to contain the entire disk.
+
+# The script creates the /logs directory, creates the mirrored log partition,
+# then mounts it and moves the splunk installation to the /logs partition
+# for space reasons.  It then sets up the fifo between syslog-ng and splunk.
+
+echo "Removing old syslog startup links."
+/etc/init.d/syslog stop
+rm -rf /etc/rc*.d/*syslog
+
+echo "Making log directory /logs."
+if [ -d /logs ]; then
+  mv /logs /logs.old
+  echo "Check /logs.old for old logs"
+fi
+
+mkdir /logs
+chown root:root /logs
+chmod 755 /logs
+
+echo "Creating new d70 logging partition from c0t2d0s0 and c0t3d0s0."
+metainit -f d71 1 1 c0t2d0s0
+metainit -f d72 1 1 c0t3d0s0
+metainit d70 -m d71
+metattach  d70 d72
+
+# This assumes that there's already a filesystem on d70
+# We could do a newfs, but that will want interaction
+
+cat <<EOF >> /etc/lvm/md.tab
+
+d70 -m d71 d72 1
+d71 1 1 /dev/dsk/c0t2d0s0
+d72 1 1 /dev/dsk/c0t3d0s0
+
+EOF
+
+echo "/dev/md/dsk/d70 /dev/md/rdsk/d70        /logs   ufs     2       yes     logging" >> /etc/vfstab
+
+mount /logs
+
+if [ -d /opt/splunk ]; then
+  echo "Moving splunk from /opt to /logs."
+  if [ -f /etc/init.d/splunk ]; then
+    /etc/init.d/splunk stop
+  fi
+  if [ -d /logs/splunk ]; then
+    mv -f /logs/splunk /logs/splunk.old
+    echo "Check /logs/splunk.old for old logs"
+  fi
+  mv -f /opt/splunk /logs/
+  ln -s /logs/splunk /opt/splunk
+else
+  echo "No splunk directory found in /opt."
+fi
+
+echo "Creating fifo for syslog-ng and splunk."
+mkdir -p /var/syslog-ng
+mkfifo /var/syslog-ng/syslog_fifo
+chown -R root:root /var/syslog-ng
+
+if [ -f /etc/init.d/syslog ]; then
+  echo "Starting syslog."
+  /etc/init.d/syslog start
+fi
+
+if [ -f /etc/init.d/splunk ]; then
+  echo "Starting splunk."
+  /etc/init.d/splunk start
+fi

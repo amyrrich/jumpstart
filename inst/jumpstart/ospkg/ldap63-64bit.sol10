@@ -1,0 +1,4 @@
+## The LDAP packages
+package		SUNWpl5u add		# Sun perl packages
+package		SUNWpl5v add
+package		SUNWprd add		# You will need this for nspr.h for the require_ssl plugin

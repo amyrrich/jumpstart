@@ -1,0 +1,18 @@
+##
+#
+
+PATH="/usr/xpg4/bin:/usr/opt/SUNWmd/sbin:$PATH"
+export PATH
+
+# second run through - add the second mirror to everything that should
+# have been remounted now
+
+for count in `metastat |grep Mirror | sed 's/d\(.*\):.*$/\1/'` ; do
+  mirror=`expr ${count} + 2`
+  # add the second mirror
+  metattach d${count} d${mirror}
+done
+
+# update the dumpdev in case we have mirrored it
+dumpadm -d swap
+

@@ -1,0 +1,21 @@
+##
+
+# Import all the host config variables
+# requires the pressret function
+
+# the config file for this machine
+confile="hostconf/`uname -n`"
+
+# Deal with running after a reboot
+if [ "${SI_CONFIG_DIR}" = "" ]; then
+  SI_CONFIG_DIR="/mnt/jumpstart"
+fi
+
+# Config file ? We don't need no stiiinking config file ...
+while [ ! -r "${SI_CONFIG_DIR}/$confile" ]; do
+  pressret "hostconf file: $confile" "doesn't exist or isn't readable." \
+           "check and press return to continue."
+done
+ 
+# Bring in the variables from the config file.
+. ${SI_CONFIG_DIR}/$confile

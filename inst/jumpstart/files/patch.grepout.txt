@@ -1,0 +1,16 @@
+^Patch packages installed:$
+^See .*/var/sadm/patch/.*/log for details$
+^  SUNW[^ ]+$
+^Checking installed packages and patches\.\.\.$
+^Checking installed patches\.\.\.$
+^Generating list of files to be patched\.\.\.$
+^Installing patch packages\.\.\.$
+^Verifying sufficient filesystem capacity \((exhaustive|dry run) method\)\.\.\.$
+^ *$
+format\.dat
+^Executing prepatch script\.\.\.$
+^Executing postpatch script\.\.\.$
+^under the filename$
+^The files need to be manually merged if any customizations$
+^were done.$
+^See patchadd\(1M\) for instructions.$

@@ -1,0 +1,7 @@
+system_locale=en_US
+security_policy=NONE
+timezone=US/Eastern
+timeserver=localhost
+name_service=NONE
+terminal=vt100
+network_interface=PRIMARY { default_route=192.168.1.252 netmask=255.255.254.0 protocol_ipv6=no }

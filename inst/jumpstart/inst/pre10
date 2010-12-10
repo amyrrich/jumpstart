@@ -1,0 +1,168 @@
+#!/bin/sh
+# begin script - run on the client before the installation begins.
+# this begin script creates the profile from information and pointers
+# to files in ${SI_CONFIG_DIR}}/hostconf/`uname -n`
+#
+# when the profile section os an = then the profile is taken from
+# ${SI_PROFILE}
+#
+# ${SI_CONFIG_DIR} is the jumpstart directory.
+
+# where are the utilities ?
+# this is also in the post install script
+utildir="${SI_CONFIG_DIR}/util"
+
+# grab the press return function
+. $utildir/pressret
+
+# set the uname variables - $os $ver $arch and $proc
+# requires the pressret function
+. $utildir/douname
+
+echo
+echo "#####################################################################"
+echo "Pre install (begin) script"
+echo "#####################################################################"
+echo
+
+# find and source the hostconfig file.
+# this gets the variables from the host config file and gives warning
+# messages if there are problems or it can't find it.
+# requires the pressret function
+. $utildir/gethostconf
+
+# check we have some ospkgs
+if [ -z "${ospkglist}" ]; then
+  pressret "" "No ospkgs file." "Add something to \$ospkglist and restart."
+fi
+
+# make sure only disk layout method is defined
+if [ -n "${bootdisk}" ] && [ -n "${profile}" ]; then
+  pressret "" "Both bootdisk and profile layout methods defined." \
+    "Choose one disk definition method and restart."
+fi
+
+# Now we've done some very basic verification, put together a profile.
+echo "Writing profile out to ${SI_PROFILE}"
+
+# Make sure we have something to add to.
+touch  ${SI_PROFILE}
+
+echo "Creating initial hard drive profile."
+
+# the bootdisk layout method takes precedence over the profile layout method.
+# profile should only be used to deviate from the standard
+
+if [ -n "${bootdisk}" ]; then
+  if [ -n ${bootmirror} ]; then
+    case ${bootdisksize} in
+      '36') 
+	    fssize=4096
+            swapsize=8192
+      ;;
+      *)
+            fssize=8192
+            swapsize=8192
+      ;;
+    esac
+
+    # set up the disk profile
+
+    echo "Using boot disk ${bootdisk} and mirror ${bootmirror}."
+    echo "Using filesystem sizes of ${fssize} and swap size of ${swapsize}"
+    echo ""
+
+    cat >> ${SI_PROFILE} << EOF
+
+install_type    initial_install
+isa_bits        64
+system_type     standalone
+partitioning    explicit
+filesys         mirror:d0 ${bootdisk}s0 ${bootmirror}s0 ${fssize} / 
+filesys         mirror:d10 ${bootdisk}s1 ${bootmirror}s1 ${swapsize} swap
+filesys         mirror:d30 ${bootdisk}s3 ${bootmirror}s3 ${fssize} /var 
+filesys         mirror:d50 ${bootdisk}s5 ${bootmirror}s5 ${fssize} /lu/root 
+filesys         mirror:d60 ${bootdisk}s6 ${bootmirror}s6 ${fssize} /lu/var 
+# metadevice state databases
+metadb          ${bootdisk}s7
+metadb          ${bootmirror}s7
+EOF
+
+    # if we find zfs-init in postreboot, then we're going to set up slice 4
+    # as a zfs pool on both boot disks
+
+    zfs=0
+    for fscript in ${postreboot}; do
+      if [ ${fscript} = "zfs-init" ]; then
+        zfs=1
+      fi
+    done
+  
+    # if we're not setting up zfs, we use slice for as an svm mirror for /local
+    if [ ${zfs} -eq 1 ]; then
+      cat >> ${SI_PROFILE} << EOF
+# partitions reserved for zfs
+filesys ${bootdisk}s4 free
+filesys ${bootmirror}s4 free
+EOF
+    else
+      cat >> ${SI_PROFILE} << EOF
+# not using zfs
+filesys         mirror:d40 ${bootdisk}s4 ${bootmirror}s4 free /local
+EOF
+    fi
+
+  else
+    pressret "" "You must specify a bootdisk and a bootmirror in the hostconf file."
+fi
+
+# set up the disk layout based on a profile file instead of the standard disk
+# layout for sol10
+
+elif [ -n "${profile}" ]; then
+  for file in ${profile} ; do
+    if [ -r ${SI_CONFIG_DIR}/prof/${file} ]; then
+      echo "  adding \"prof/${file}\" to profile"
+      echo                                  >> ${SI_PROFILE}
+      cat ${SI_CONFIG_DIR}/prof/${file}     >> ${SI_PROFILE}
+    else
+      pressret "" "The profile prof/${file} not found." \
+        "Press return to ignore or fix and restart"
+    fi
+  done
+
+else
+  pressret "" "No bootdisks or profile defined." \
+    "Add something to \$bootdisks or \$profile and restart."
+fi
+
+
+# If we've specified extra disk configuration info in the hostconf file, add
+# it to the profile.
+
+if [ -n "${extradisks}" ]; then
+  OIFS="${IFS}"
+  IFS=":"
+
+  echo "# extra disk definitions"           >> ${SI_PROFILE}
+  for disk in ${extradisks} ; do
+    echo "Adding \"${disk}\" to profile"
+    echo "${disk}"                          >> ${SI_PROFILE}
+  done
+  IFS="${OIFS}"
+fi
+
+for file in ${ospkglist} ; do
+  if [ -r ${SI_CONFIG_DIR}/ospkg/${file} ]; then
+    echo "  adding \"ospkg/${file}\" to profile"
+    echo                                    >> ${SI_PROFILE}
+    cat ${SI_CONFIG_DIR}/ospkg/${file}      >> ${SI_PROFILE}
+  else
+    pressret "" "The ospkg file ospkg/${file} not found" \
+             "Press return to ignore or fix and restart"
+  fi
+done
+
+echo "final profile contains:"
+cat ${SI_PROFILE}
+echo
